@@ -1,0 +1,16 @@
+.DS_Store
+log/*
+tmp/*
+TAGS
+*~
+.#*
+src/*
+.hgignore
+.hg/*
+.svn/
+gems/gems/*
+gems/specifications/*
+coverage/
+*/coverage/
+*.diff
+

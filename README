@@ -1,0 +1,143 @@
+-----------------------------------------
+1)  Built in operators:
+    +,-,*,/,%,==,!=,<=,>=,<,>,;
+-----------------------------------------
+2)  Integers and floats in arithmetics:
+    1 or 2.33333 or 0.34 or .34
+-----------------------------------------
+3)  Arbitrary nesting of parentheses:
+    (1+2*(5+((3+4)*3)-6/2)+7*2)\n    => 61
+-----------------------------------------
+4)  Comments:
+    # A comment until the end of the line
+    /* A longer comment that
+       spans multiple lines
+     */
+-----------------------------------------
+5)  Built in keywords:
+    TRUE,FALSE,NULL,IF,ELSE,END
+-----------------------------------------
+6)  Built in functions:
+    HELP,ENV,SIZE,SPLIT,ROUND,MIN,MAX
+    SUM,MULT,AVG, PRINT, PRINT_LINE
+    TO_INT, TO_FLOAT, TO_ARRAY
+-----------------------------------------
+7)  Standard library functions:
+    Use to iterate over Arrays or Strings
+    FOREACH_IN, INJECT
+-----------------------------------------
+8)  Access the current environment:
+    ENV; (your output may differ)
+    => { :a => 3, :foo => 5 }
+    Given the following environment:
+    { :a => 1, :b => 2, :c => 3 }
+    ENV['a']
+    => 1
+    ENV['a'..'b']
+    => { :a => 1, :b => 2 }
+-----------------------------------------
+9)  Numeric variables and literals
+    3;
+    => 3
+    a = 3;
+    => 3
+    a;
+    => 3
+-----------------------------------------
+10) String variables and literals
+    "This is a string";    
+    => "This is a string";
+    'This is a string';
+    => "This is a string";
+    s1 = "This is a string"; s1;
+    => "This is a string"
+    s2 = 'This is a string'; s2;
+    => "This is a string"
+    SIZE(s1);
+    => 16
+    SIZE("foo");
+    => 3
+-----------------------------------------
+11) Variables and closure applications
+    a = 3; foo = 5;
+    calc = fun(x,y) { (x + y) * a + foo };
+    calc(2,2);
+    => 17
+-----------------------------------------
+12) Array variables and literals
+    arr = [1, [fun(){2}()], fun(x){x}(3)]
+    SIZE(arr);
+    => 3
+    SIZE([1,2,3]);
+    => 3
+    [1,2,3] + [4,[5,6]];
+    => [1,2,3,4,[5,6]]
+    [1,2,3] - [[1],2,3];
+    => [1]
+-----------------------------------------
+13) Hash variables and literals
+    h = { 1 => fun(){2}(), 'a' => 'foo' }
+    SIZE(h);
+    => 2
+    h[1];
+    => 'fun(){2}()'
+    h['a'];
+    => 'foo'
+    SIZE({ 1 => 2});
+    => 1
+-----------------------------------------
+14) Range variables and literals
+    range_including_upper = 1..5
+    => [ 1, 2, 3, 4, 5 ]
+    SIZE(range_including_upper);
+    => 5
+    range_excluding_upper = 1...5
+    => [ 1, 2, 3, 4 ]
+    SIZE(range_excluding_upper);
+    => 4
+    SIZE([1..5);
+    => 5
+-----------------------------------------
+15) Conditional branching and recursion:
+    factorial = fun(x) {      
+      if(x == 0)
+        1
+      else
+        x * factorial(x - 1)
+      end
+    }
+    factorial(5);
+    => 120
+-----------------------------------------
+16) Conditional branching:
+    foo = fun(x) {
+      if(x == 0)
+        0
+      elsif(x == 1)
+        1
+      else
+        2
+      end
+    }
+    foo(0);
+    => 0
+    foo(1);
+    => 1
+    foo(2);
+    => 2
+-----------------------------------------
+17) case expressions:
+    foo = fun(x) {
+      case x
+      when 0 then 0
+      when 1 then 1
+      when 2 then 2
+      else 3
+      end
+    }
+    foo(1);
+    => 1
+    foo(3);
+    => 3
+-----------------------------------------
+

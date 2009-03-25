@@ -1,0 +1,1394 @@
+grammar Trxl
+
+  rule program
+    space statement_list space {
+      def eval(env = Environment.new)
+        statement_list.eval(env)
+      end
+    }
+    /
+    space statement_separator* {
+      def eval(env = Environment.new)
+        nil
+      end
+    }
+  end
+
+  rule require_directive
+    require_keyword space string_literal <RequireDirective>
+  end
+
+  rule statement_list
+    expression more_expressions:(statement_separator expression)* statement_separator* {
+      def eval(env = Environment.new)
+        last_eval = nil
+        #env.enter_scope
+        expressions.each do |e|
+          last_eval = e.eval(env)
+        end
+        #env.exit_scope
+        last_eval
+      end
+
+      def expressions
+        [ expression ] + more_expressions.elements.map { |e| e.expression }
+      end
+
+      def to_s(env = Environment.new)
+        expressions.map { |e| e.to_s(env) }.join(' ')
+      end
+    }
+  end
+
+  rule statement_separator
+    (space ';' space) {
+      def to_s(env = Environment.new)
+        text_value
+      end
+    }
+  end
+
+
+  rule expression
+    if_expression
+    /
+    case_expression
+    /
+    binary_expression 
+    / 
+    negated_expression 
+    / 
+    unary_expression
+  end
+
+  rule binary_expression
+    operand_1:unary_expression space operator:binary_expression_op space operand_2:unary_expression binary_expression <BinaryOperation>
+    /
+    operand_1:unary_expression space operator:binary_expression_op space operand_2:unary_expression <BinaryOperation>
+  end
+
+  rule negated_expression
+    "!" expression {
+      def eval(env = Environment.new)
+        !expression.eval(env)
+      end
+    }
+  end
+ 
+  rule unary_expression
+    require_directive
+    /
+    definition
+    / 
+    comparative
+    /
+    additive
+  end
+
+  
+  rule definition
+    variable space '=' space expression {
+      def eval(env = Environment.new)
+        env[variable.name] = expression.eval(env)
+      end
+
+      def to_s(env = Environment.new)
+        "#{variable.name} = #{expression.eval(env)}"
+      end
+    }
+  end
+  
+
+  rule if_expression
+
+    'if' space '(' space if_exp:expression space ')' SPACE 
+      if_branch:statement_list space
+    elsif_branches:(elsif_expression_list SPACE)?
+    else_branch:('else' SPACE statement_list SPACE)?
+    'end'
+
+    {
+      def eval(env = Environment.new)
+        return if_branch.eval(env) if if_exp.eval(env)
+        elsif_expressions.each do |e|
+          return e.statement_list.eval(env) if e.elsif_exp.eval(env)
+        end
+        (else_branch && !else_branch.empty?) ? else_branch.statement_list.eval(env) : nil
+      end
+
+      def elsif_expressions(env = Environment.new)
+        (elsif_branches && !elsif_branches.empty?) ? elsif_branches.elsif_expression_list.elsif_expressions : []
+      end
+    }
+
+  end
+
+  rule elsif_expression
+    'elsif' space '(' space elsif_exp:expression space ')' space statement_list {
+
+      def eval(env = Environment.new)
+        statement_list.eval(env)
+      end
+    }
+  end
+
+  rule elsif_expression_list
+    elsif_expression tail:(SPACE elsif_expression)* {
+      def eval(env = Environment.new)
+        elsif_expressions.inject([]) do |exprs, expr|
+          exprs << expr.eval(env)
+        end
+      end
+
+      def elsif_expressions
+        [ elsif_expression ] + tail.elements.map { |e| e.elsif_expression }
+      end
+
+    }
+  end
+
+  rule case_expression
+
+    case_keyword SPACE case_exp:expression SPACE
+      when_expression_list SPACE
+      'else' SPACE else_exp:statement_list SPACE
+    end_keyword 
+
+    {
+      def eval(env = Environment.new)
+        case_val = case_exp.eval(env)
+        else_val = else_exp.eval(env)
+        Kernel.eval <<-CASE_STMT
+          lambda do
+            case #{case_val.is_a?(String) ? "'#{case_val}'" : case_val}
+              #{ruby_when_expressions(env)}
+              else #{else_val.is_a?(String) ? "'#{else_val}'" : else_val}
+            end
+          end [] # call this lambda immediately   
+        CASE_STMT
+      end
+
+      def ruby_when_expressions(env = Environment.new)
+        when_expression_list.eval(env).inject('') do |ruby, e|
+          # possible string values have been wrapped in '' already
+          ruby << "when #{e[:condition]} then #{e[:expression]} "
+        end
+      end
+    }
+
+  end
+
+  rule when_expression
+    when_keyword SPACE when_exp:expression SPACE then_keyword SPACE statement_list {
+      def eval(env = Environment.new)
+        condition = when_exp.eval(env)
+        expression = statement_list.eval(env)
+        { 
+          # use '' instead of "" since we don't care about var replacement now
+          :condition =>  (condition.is_a?(String)  ? "'#{condition}'"  : condition),
+          :expression => (expression.is_a?(String) ? "'#{expression}'" : expression)
+        }
+      end
+    }
+  end
+
+  rule when_expression_list
+    when_expression more_when_expressions:(SPACE when_expression)* {
+      def eval(env = Environment.new)
+        when_expressions.inject([]) do |exprs, expr|
+          exprs << expr.eval(env)
+        end
+      end
+
+      def when_expressions
+        [ when_expression ] + more_when_expressions.elements.map { |e| e.when_expression }
+      end
+    }
+  end
+
+  rule application
+    operator space first_application:actual_parameter_list more_applications:( space actual_parameter_list )* {
+      def eval(env = Environment.new)
+        left_associative_apply(operator, env)
+      end
+
+      def left_associative_apply(operator, env)
+        applications.each do |actual_parameter_list|
+          actuals = actual_parameter_list.eval(env)
+          unless operator.instance_of?(Trxl::Function::Closure)
+            operator = operator.eval(env)
+          end
+          operator = operator.apply(actuals)
+        end
+        operator
+      end
+
+      def applications
+        [ first_application ] + more_applications.elements.map { |e| e.actual_parameter_list }
+      end
+
+      def to_s(env = Environment.new)
+        text_value
+      end
+    }
+  end
+  
+  rule operator
+    function / variable
+  end
+  
+  rule function
+    'fun' formal_parameter_list space '{' space body:statement_list space '}' <Function>
+  end
+
+  rule formal_parameter_list
+    '(' variable more_variables:(space ',' space variable)* space ')'  {
+      def bind(args, env = Environment.new)
+        if (a = args.length) < (f = variables.length)
+          raise WrongNumberOfArgumentsException, "#{a} instead of #{f}"
+        end
+        env.merge!(variables.zip(args).inject({}) do |bindings, param|
+          bindings.merge(param.first.name => param.last)
+        end)
+        # store arguments array in scope, javascript like
+        env.merge!(:arguments => args)
+      end
+
+      def variables
+        [variable] + more_variables.elements.map { |e| e.variable }
+      end
+
+      def length
+        variables.length
+      end
+
+      def to_s(env = Environment.new)
+        "(#{variables.map { |var| var.text_value }.join(',')})"
+      end
+    }
+    /
+    '(' space ')' {
+      def bind(args, env)
+        # store arguments array in scope, javascript like
+        env.merge!(:arguments => args)
+      end
+
+      def to_s(env = Environment.new)
+        '()'
+      end      
+    }
+  end
+
+  rule actual_parameter_list
+    '(' space expression_list space ')' {
+
+      def eval(env = Environment.new)
+        expression_list.eval(env)
+      end
+
+      def to_s(env = Environment.new)
+        "(#{expression_list.to_s(env)})"
+      end
+    }
+    /
+    '(' space ')' {
+      def eval(env = Environment.new)
+        []
+      end
+   
+      def to_s(env = Environment.new)
+        '()'
+      end
+    }
+  end
+
+  rule string_literal
+    single_quoted_string / double_quoted_string
+  end
+
+  rule double_quoted_string
+    '"' string:(!'"' ("\\\\" / '\"' / .))* '"' {
+      def eval(env = Environment.new)
+        string.text_value
+      end
+    }
+  end
+
+  rule single_quoted_string
+    "'" string:(!"'" ("\\\\" / "\\'" / .))* "'" {
+      def eval(env = Environment.new)
+        string.text_value
+      end
+    }
+  end
+
+  rule hash_literal
+    '{' space hash_entry_list space '}' {
+
+      def eval(env = Environment.new)
+        hash_entry_list.eval(env)
+      end
+
+      def to_s(env = Environment.new)
+        "(#{hash_entry_list.to_s(env)})"
+      end
+    }
+    /
+    '{}' {
+      def eval(env = Environment.new)
+        {}
+      end
+   
+      def to_s(env = Environment.new)
+        text_value
+      end
+    }
+  end
+
+
+  rule hash_entry_list
+    hash_entry tail:(space ',' space hash_entry)* ','? {
+      def eval(env = Environment.new)
+        hash_entries.inject({}) do |hash, entry|
+          hash.merge(entry.eval(env))
+        end
+      end
+
+      def hash_entries
+        [ hash_entry ] + tail.elements.map { |e| e.hash_entry }
+      end
+    }
+  end
+
+  rule hash_entry
+    key:expression space '=>' space value:expression {
+      def eval(env = Environment.new)
+        { key.eval(env) => value.eval(env) }
+      end
+   
+      def to_s(env = Environment.new)
+        text_value
+      end
+    }
+  end
+
+  rule array_literal
+    '[' space expression_list space ']' {
+
+      def eval(env = Environment.new)
+        expression_list.eval(env)
+      end
+
+      def to_s(env = Environment.new)
+        "(#{expression_list.to_s(env)})"
+      end
+    }
+    /
+    '[]' {
+      def eval(env = Environment.new)
+        []
+      end
+   
+      def to_s(env = Environment.new)
+        text_value
+      end
+    }
+  end
+
+  rule range_literal
+    lower:(variable/integer_number/string_literal) space ('...' / '..') space upper:(variable/integer_number/string_literal) {
+      def eval(env = Environment.new)
+        lower_bound = lower.eval(env)
+        upper_bound = upper.eval(env)
+        if lower_bound.class == upper_bound.class && !lower_bound.is_a?(Array)
+          range_op = elements[2].text_value
+          omit_upper = (range_op == '...') ? true : false
+          Range.new(lower.eval(env), upper.eval(env), omit_upper).to_a
+        else
+          raise Trxl::InvalidOperationException, "Range boundary is not of type String or Integer"
+        end
+      end
+
+      def range_type(env = Environment.new)
+        case elements[0].eval(env)
+          when Fixnum then :numeric
+          when String then :string
+          else :unknown
+        end
+      end
+
+      def to_s(env = Environment.new)
+        text_value
+      end
+    }
+  end
+
+  rule expression_list
+    expression more_expressions:(space ',' space expression)* {
+
+      def eval(env = Environment.new)
+        expressions.inject([]) { |arr, exp| arr << exp.eval(env) }
+      end
+
+      def expressions
+        [ expression ] + more_expressions.elements.map { |e| e.expression }
+      end
+
+      def length
+        expressions.length
+      end
+
+      def to_s(env = Environment.new)
+        "#{expressions.map { |p| p.text_value }.join(',')}"
+      end
+    }
+  end
+  
+  rule comparative
+    operand_1:additive space operator:equality_op space operand_2:additive <BinaryOperation>
+  end
+
+  rule binary_expression_op
+    '&&' <NilAcceptingOperator>
+    /
+    '||' <NilAcceptingOperator>
+    /
+    '<<' <NilAcceptingOperator> {
+
+      def apply(a, b)
+        if a.is_a?(Array)
+          super
+        else
+          raise Trxl::InvalidOperationException, "Left operand is not an Array"
+        end
+      end
+      
+      # override default behavior since it's not possible to push into nil
+      def lhs_nil_allowed?
+        false
+      end
+    }    
+  end
+  
+  rule equality_op
+    '==' <NilAcceptingOperator>
+    /
+    '!=' <NilAcceptingOperator>
+    /
+    '<=' <NilRejectingOperator>
+    /
+    '>=' <NilRejectingOperator>
+    /
+    '<'  <NilRejectingOperator>
+    /
+    '>'  <NilRejectingOperator>
+  end
+  
+  rule additive
+    multitive tail:(space additive_op space multitive)* {
+      def eval(env = Environment.new)
+        # left associative evaluation
+        additives(env).inject(multitive.eval(env)) do |result, next_op|
+          next_op[0].apply(result, next_op[1])
+        end
+      end
+
+      def additives(env = Environment.new)
+        tail.elements.map { |e| [ e.additive_op, e.multitive.eval(env) ] }
+      end
+    }
+  end
+  
+  rule additive_op
+    '+' <NilRejectingOperator>
+    /
+    '-' <NilRejectingOperator>
+  end
+
+  rule multitive
+    exponential tail:(space multitive_op space exponential)* {
+      def eval(env = Environment.new)
+        # left associative evaluation
+        multitives(env).inject(exponential.eval(env)) do |operand, next_op|
+          op = (next_op[0].text_value == '/' ? operand.to_f : operand)
+          next_op[0].apply(op, next_op[1])
+        end
+      end
+
+      def multitives(env = Environment.new)
+        tail.elements.map { |e| [ e.multitive_op, e.exponential.eval(env) ] }
+      end
+    }
+  end
+  
+  rule multitive_op
+    '*' <NilRejectingOperator>
+    /
+    '/' <NilRejectingOperator> {
+
+      def apply(a, b)
+        begin
+          result = super
+          if result == 1.0 / 0 || (result.respond_to?(:nan?) && result.nan?)
+            raise Trxl::DivisionByZeroError, "Division by zero: '#{a} / #{b}'"
+          end
+          result
+        rescue ZeroDivisionError
+          raise Trxl::DivisionByZeroError, "Division by zero: '#{a} / #{b}'"
+        end
+      end
+    }
+    /
+    '%' <NilRejectingOperator> {
+
+      def apply(a, b)
+        begin
+          result = super
+          if result.respond_to?(:nan?) && result.nan?
+            raise Trxl::DivisionByZeroError, "Division by zero: '#{a} % #{b}'"
+          end
+          result
+        rescue ZeroDivisionError
+          raise Trxl::DivisionByZeroError, "Division by zero: '#{a} % #{b}'"
+        end
+      end
+    }
+  end
+
+  rule exponential
+    operand_1:primary space operator:exponential_op space operand_2:exponential <BinaryOperation>  
+    /
+    primary
+  end
+
+  rule exponential_op
+    '^' <NilRejectingOperator> { 
+      def ruby_operator
+        :**
+      end
+    }
+  end
+  
+  rule primary
+    predefined_function
+    /
+    application
+    /
+    function
+    /
+    'TRUE' {
+      def eval(env = Environment.new)
+        true
+      end
+    } 
+    /
+    'FALSE' {
+      def eval(env = Environment.new)
+        false
+      end
+    }
+    /
+    'NULL' {
+      def eval(env = Environment.new)
+        nil
+      end
+    }
+    /
+    offset_access_exp
+    /
+    pattern_match_exp
+    /
+    array_literal
+    /
+    hash_literal
+    /
+    range_literal
+    /
+    string_literal
+    /
+    variable
+    /
+    number
+    /
+    '(' space expression space ')' {
+      def eval(env = Environment.new)
+        expression.eval(env)
+      end
+    }
+  end
+
+
+  rule offset_access_exp
+    variable offset_specifier_exp <OffsetAccessExpression> {
+      def eval(env = Environment.new)
+        var = variable.eval(env)
+        if var.is_a?(Array) || var.is_a?(Hash) || var.is_a?(String)
+          result = left_associative_apply(var, offset_specifier_exp.eval(env))
+          var.is_a?(String) ? result.chr : result
+        else
+          msg = "Indexing is not possible for #{var.class} (only Arrays and Strings allowed)"
+          raise Trxl::InvalidOperationException, msg
+        end
+      end
+    }
+    /
+    pattern_match_exp offset_specifier_exp <OffsetAccessExpression> {
+      def eval(env = Environment.new)
+        offsets = offset_specifier_exp.eval(env)
+        ruby_array = pattern_match_exp.eval(env)
+        left_associative_apply(ruby_array, offsets)
+      end
+    }
+    /
+    array_literal offset_specifier_exp <OffsetAccessExpression> {
+      def eval(env = Environment.new)
+        offsets = offset_specifier_exp.eval(env)
+        ruby_array = array_literal.eval(env)
+        left_associative_apply(ruby_array, offsets)
+      end
+    }
+  end
+
+  rule offset_specifier_exp
+    '[' expression ']' offset_specifier_exp {
+      def eval(env = Environment.new)
+        [ expression.eval(env) ] + offset_specifier_exp.eval(env)
+      end
+    }
+    /
+    '[' expression ']' {
+      def eval(env = Environment.new)
+         [ expression.eval(env) ]
+      end
+    }
+  end
+
+
+
+  rule pattern_match_exp
+    exact_match_exp / regex_match_exp
+  end
+
+  rule pattern_match_exp
+    variable (exact_match_exp / regex_match_exp) {
+      def eval(env = Environment.new)
+        match_op = elements[1].match_op
+        pattern = elements[1].pattern(env)
+        enumerable = variable.eval(env)
+        if enumerable.is_a?(Array)
+          enumerable.find_all { |e| e.send(match_op, pattern) }
+        elsif enumerable.is_a?(Hash)
+          enumerable.select { |k, v| v.send(match_op, pattern) }
+        else
+          msg = "Pattern matching is not possible for #{enumerable.class} (only Arrays and Hashes allowed)"
+          raise Trxl::InvalidOperationException, msg
+        end
+      end
+    }
+  end
+
+  rule exact_match_exp
+    '[=' primary ']' {
+      def pattern(env = Environment.new)
+        primary.eval(env)
+      end
+ 
+      def match_op
+        '=='
+      end
+    }
+  end
+
+  rule regex_match_exp
+    '[' regexp ']' {
+      def pattern(env = Environment.new)
+        regexp.eval(env)
+      end
+
+      def match_op
+        '=~'
+      end
+    }
+  end
+
+  rule regexp
+    "/" regexp_body "/" {
+      def eval(env = Environment.new)
+        regexp_body.eval(env)
+      end
+    }
+  end
+
+  rule regexp_body
+    .+ {
+      def eval(env = Environment.new)
+        text_value # allow anything for now
+      end
+    }
+  end
+
+
+  rule variable 
+    [a-zA-Z_]+ ([0-9] / [a-zA-Z_])* {
+
+      def eval(env = Environment.new)
+        if env.has_key?(name)
+          env[name]
+        else
+          raise(Trxl::MissingVariableException, "variable #{name} is not defined")
+        end
+      end
+
+      def bind(value, env)
+        env.merge(text_value.to_sym => value)
+      end
+
+      def to_s(env = Environment.new)
+        if env.has_key?(name)
+          value = env[name]
+          (value.is_a?(Array) || value.is_a?(Hash)) ? value.inspect : value.to_s
+        else 
+          text_value
+        end
+      end
+
+      def name
+        text_value.to_sym
+      end
+    }
+  end
+
+  rule number
+    real_number / integer_number {
+      def to_s(env = Environment.new)
+        text_value
+      end
+    }
+  end
+
+  rule integer_number
+    '-'? ([1-9] [0-9]* / '0') {
+      def eval(env = Environment.new)
+        text_value.to_i
+      end
+    }
+  end
+
+  rule real_number
+    '-'? [0-9]* '.' [0-9]* {
+      def eval(env = Environment.new)
+        text_value.to_f
+      end
+    }
+  end
+
+
+
+  rule predefined_function
+    help_function
+    /
+    env_function
+    /
+    print_line_function
+    /
+    print_function
+    /
+    size_function
+    /
+    split_function
+    /
+    to_int_function
+    /
+    to_float_function
+    /
+    to_array_function
+    /
+    round_function 
+    / 
+    min_function
+    /
+    max_function
+    /
+    sum_function
+    /
+    mult_function
+    /
+    avg_sum_function
+    /
+    avg_function
+    /
+    matching_ids_function
+    /
+    values_of_type_function
+  end
+
+  rule help_function
+    'HELP' {
+      def eval(env = Environment.new)
+        to_s(env)
+      end
+     
+      def to_s(env = Environment.new)
+        help =  "-----------------------------------------\n"
+        help =  "           TRXL Language HELP            \n"
+        help =  "-----------------------------------------\n"
+        help << "1)  Built in operators:\n"
+        help << "    +,-,*,/,%,==,!=,<=,>=,<,>,;\n"
+        help << "-----------------------------------------\n"
+        help << "2)  Integers and floats in arithmetics:\n"
+        help << "    1 or 2.33333 or 0.34 or .34\n"
+        help << "-----------------------------------------\n"
+        help << "3)  Arbitrary nesting of parentheses:\n"
+        help << "    (1+2*(5+((3+4)*3)-6/2)+7*2)\n"
+        help << "    => 61\n"
+        help << "-----------------------------------------\n"
+        help << "4)  Comments:\n"
+        help << "    # A comment until the end of the line\n"
+        help << "    /* A longer comment that\n"
+        help << "       spans multiple lines\n"
+        help << "     */\n"
+        help << "-----------------------------------------\n"
+        help << "5)  Built in keywords:\n"
+        help << "    TRUE,FALSE,NULL,IF,ELSE,END\n"
+        help << "-----------------------------------------\n"
+        help << "6)  Built in functions:\n"
+        help << "    HELP,ENV,SIZE,SPLIT,ROUND,MIN,MAX\n"
+        help << "    SUM,MULT,AVG, PRINT, PRINT_LINE\n"
+        help << "    TO_INT, TO_FLOAT, TO_ARRAY\n"
+        help << "-----------------------------------------\n"
+        help << "7)  Standard library functions:\n"
+        help << "    Use to iterate over Arrays or Strings\n"
+        help << "    FOREACH_IN, INJECT\n"
+        help << "-----------------------------------------\n"
+        help << "8)  Access the current environment:\n"
+        help << "    ENV; (your output may differ)\n"
+        help << "    => { :a => 3, :foo => 5 }\n"
+        help << "    Given the following environment:\n"
+        help << "    { :a => 1, :b => 2, :c => 3 }\n"
+        help << "    ENV['a']\n"
+        help << "    => 1\n"
+        help << "    ENV['a'..'b']\n"
+        help << "    => { :a => 1, :b => 2 }\n"
+        help << "-----------------------------------------\n"
+        help << "9)  Numeric variables and literals\n"
+        help << "    3;\n"
+        help << "    => 3\n"
+        help << "    a = 3;\n"
+        help << "    => 3\n"
+        help << "    a;\n"
+        help << "    => 3\n"
+        help << "-----------------------------------------\n"
+        help << "10) String variables and literals\n"
+        help << "    \"This is a string\";\n"
+        help << "    => \"This is a string\";\n"
+        help << "    'This is a string';\n"
+        help << "    => \"This is a string\";\n"
+        help << "    s1 = \"This is a string\"; s1;\n"
+        help << "    => \"This is a string\"\n"
+        help << "    s2 = 'This is a string'; s2;\n"
+        help << "    => \"This is a string\"\n"
+        help << "    SIZE(s1);\n"
+        help << "    => 16\n"
+        help << "    SIZE(\"foo\");\n"
+        help << "    => 3\n"
+        help << "-----------------------------------------\n"
+        help << "11) Variables and closure applications\n"
+        help << "    a = 3; foo = 5;\n"
+        help << "    calc = fun(x,y) { (x + y) * a + foo };\n"
+        help << "    calc(2,2);\n"
+        help << "    => 17\n"
+        help << "-----------------------------------------\n"
+        help << "12) Array variables and literals\n"
+        help << "    arr = [1, [fun(){2}()], fun(x){x}(3)]\n"
+        help << "    SIZE(arr);\n"
+        help << "    => 3\n"
+        help << "    SIZE([1,2,3]);\n"
+        help << "    => 3\n"
+        help << "    [1,2,3] + [4,[5,6]];\n"
+        help << "    => [1,2,3,4,[5,6]]\n"
+        help << "    [1,2,3] - [[1],2,3];\n"
+        help << "    => [1]\n"
+        help << "-----------------------------------------\n"
+        help << "13) Hash variables and literals\n"
+        help << "    h = { 1 => fun(){2}(), 'a' => 'foo' }\n"
+        help << "    SIZE(h);\n"
+        help << "    => 2\n"
+        help << "    h[1];\n"
+        help << "    => 'fun(){2}()'\n"
+        help << "    h['a'];\n"
+        help << "    => 'foo'\n"
+        help << "    SIZE({ 1 => 2});\n"
+        help << "    => 1\n"
+        help << "-----------------------------------------\n"
+        help << "14) Range variables and literals\n"
+        help << "    range_including_upper = 1..5\n" 
+        help << "    => [ 1, 2, 3, 4, 5 ]\n" 
+        help << "    SIZE(range_including_upper);\n"
+        help << "    => 5\n"
+        help << "    range_excluding_upper = 1...5\n"
+        help << "    => [ 1, 2, 3, 4 ]\n" 
+        help << "    SIZE(range_excluding_upper);\n"
+        help << "    => 4\n"
+        help << "    SIZE([1..5);\n"
+        help << "    => 5\n"
+        help << "-----------------------------------------\n"
+        help << "15) Conditional branching and recursion:\n"
+        help << "    factorial = fun(x) {\n"
+        help << "      if(x == 0)\n" 
+        help << "        1\n" 
+        help << "      else\n"
+        help << "        x * factorial(x - 1)\n"
+        help << "      end\n"
+        help << "    }\n"
+        help << "    factorial(5);\n"
+        help << "    => 120\n"
+        help << "-----------------------------------------\n"
+        help << "16) Conditional branching:\n"
+        help << "    foo = fun(x) {\n"
+        help << "      if(x == 0)\n" 
+        help << "        0\n" 
+        help << "      elsif(x == 1)\n"
+        help << "        1\n"
+        help << "      else\n"
+        help << "        2\n"
+        help << "      end\n"
+        help << "    }\n"
+        help << "    foo(0);\n"
+        help << "    => 0\n"
+        help << "    foo(1);\n"
+        help << "    => 1\n"
+        help << "    foo(2);\n"
+        help << "    => 2\n"
+        help << "-----------------------------------------\n"
+        help << "17) case expressions:\n"
+        help << "    foo = fun(x) {\n"
+        help << "      case x\n" 
+        help << "        when 0 then 0\n" 
+        help << "        when 1 then 1\n" 
+        help << "        when 2 then 2\n" 
+        help << "        else 3\n"
+        help << "      end\n"
+        help << "    }\n"
+        help << "    foo(1);\n"
+        help << "    => 1\n"
+        help << "    foo(3);\n"
+        help << "    => 3\n"
+        help << "-----------------------------------------\n"
+        help
+      end
+    }
+  end
+
+  rule env_function
+    'ENV' space '[' space range_literal space ']' {
+      def eval(env = Environment.new)
+        if range_literal.range_type(env) == :string
+          env_range = range_literal.eval(env)
+          #Hash[*(env.select{ |k,v|  env_range.include?(k.to_s) }).flatten]
+          env.select{ |k,v|  env_range.include?(k.to_s) }.map { |pair| pair[1] }
+        else
+          raise Trxl::InvalidOperationException, "ENV range not of type String"
+        end
+      end
+    }
+    /
+    'ENV' space '[' space expression space ']' {
+      def eval(env = Environment.new)
+        env[expression.eval(env).to_sym]
+      end
+    }
+    /
+    'ENV' {
+      def eval(env = Environment.new)
+        env
+      end
+    }
+  end
+
+  rule print_line_function
+    'PRINT_LINE' space '(' space expression space ')' {
+      def eval(env = Environment.new)
+        result = expression.eval(env) 
+        puts (result.is_a?(Array) || result.is_a?(Hash)) ? result.inspect : result.to_s
+      end
+    }
+    /
+    'PRINT_LINE' space '(' space ')' {
+      def eval(env = Environment.new)
+        puts
+      end
+    }
+  end
+
+  rule print_function
+    'PRINT' space '(' space expression space ')' {
+      def eval(env = Environment.new)
+        result = expression.eval(env) 
+        print (result.is_a?(Array) || result.is_a?(Hash)) ? result.inspect : result.to_s
+      end
+    }
+  end
+
+  rule size_function
+    'SIZE' space '(' space expression space ')' {
+      def eval(env = Environment.new)
+        result = expression.eval(env)
+        if result.respond_to?(:length)
+          result.length
+        else
+          raise Trxl::InvalidOperationException, "Argument is not Enumerable"
+        end
+      end
+    }
+  end
+
+  rule split_function
+    'SPLIT' space '(' space split_string:expression space ',' space split_char:expression space ')' {
+      def eval(env = Environment.new)
+        string, char = split_string.eval(env), split_char.eval(env)
+        if string.is_a?(String) && char.is_a?(String)
+          string.split(char)
+        else
+          raise Trxl::InvalidArgumentException, "Both arguments must be of type String"
+        end
+      end
+    }
+  end
+
+  rule to_int_function
+    'TO_INT' space '(' space expression space ')' {
+      def eval(env = Environment.new)
+        expression.eval(env).to_i
+      end
+    }
+  end
+
+  rule to_float_function
+    'TO_FLOAT' space '(' space expression space ')' {
+      def eval(env = Environment.new)
+        expression.eval(env).to_f
+      end
+    }
+  end
+
+  rule to_array_function
+    'TO_ARRAY' space '(' space expression space ')' {
+      def eval(env = Environment.new)
+        result = expression.eval(env)
+        if result.is_a?(Array)
+          result
+        elsif result.is_a?(Hash)
+          result.to_a
+        else
+          [ result ]
+        end
+      end
+    }
+  end
+
+  rule round_function
+    'ROUND' space '(' space value:expression space ',' space digits:expression space ')' {
+      def eval(env = Environment.new)
+        if ((v = value.eval(env)) && !v.is_a?(TrueClass))
+          format("%0.#{digits.eval(env)}f", v).to_f
+        else
+          nil
+        end
+      end
+    }
+  end
+
+  rule sum_function
+    'SUM' space '(' space expression more_expressions:( space ',' space expression)* space ')' {
+      def eval(env = Environment.new)
+        evaluated_expressions(env).compact.inject(0) do |sum, val| 
+          sum + if val.is_a?(Array)
+            val.flatten.compact.inject(0) { |next_sum, v| next_sum + v }
+          else
+            val
+          end 
+        end
+      end
+
+      def evaluated_expressions(env = Environment.new)
+        expressions.map { |e| e.eval(env) }
+      end
+
+      def expressions
+        [ expression ] + more_expressions.elements.map { |e| e.expression }
+      end
+    }
+    /
+    'SUM' space '(' space ')' {
+      def eval(env = Environment.new)
+        0
+      end
+    }
+  end
+
+  rule mult_function
+    'MULT' space '(' space expression more_expressions:( space ',' space expression)* space ')' {
+      def eval(env = Environment.new)
+        values = evaluated_expressions(env).compact
+        return 0 if values.size == 0
+        values.inject(1) do |sum, val| 
+          sum * if val.is_a?(Array)
+            val.flatten.compact.inject(1) { |next_sum, v| next_sum * v }
+          else
+            val
+          end 
+        end
+      end
+
+      def evaluated_expressions(env = Environment.new)
+        expressions.map { |e| e.eval(env) }
+      end
+
+      def expressions
+        [ expression ] + more_expressions.elements.map { |e| e.expression }
+      end
+    }
+    /
+    'MULT' space '(' space ')' {
+      def eval(env = Environment.new)
+        0
+      end
+    }
+  end
+
+  rule avg_function
+    'AVG' space '(' space expression more_expressions:( space ',' space expression)* space ')' {
+      def eval(env = Environment.new)
+        strict = true
+        nr_of_vals = 0
+        values = expressions
+        strict_flag = values[0].eval(env)
+        if strict_flag.is_a?(TrueClass) || strict_flag.is_a?(FalseClass)
+          values.shift
+          strict = strict_flag
+        end
+
+        # if all values are nil return nil
+        values = values.map { |v| v.eval(env) }
+        return nil if values.compact.size == 0
+
+        s = values.inject(0) do |sum, next_val|
+          sum + if next_val.is_a?(Array)
+            next_val.flatten.inject(0) do |next_sum, val| 
+              nr_of_vals += 1 if val && (strict || (!strict && val != 0))
+              next_sum + (val || 0)
+            end
+          else
+            nr_of_vals += 1 if next_val && (strict || (!strict && next_val != 0))
+            next_val || 0
+          end 
+        end
+        (s != 0 && nr_of_vals != 0) ? s.to_f / nr_of_vals : 0
+      end
+
+      def expressions
+        [ expression ] + more_expressions.elements.map { |e| e.expression }
+      end
+    }
+    /
+    'AVG' space '(' space ')' {
+      def eval(env = Environment.new)
+        0
+      end
+    }
+  end
+
+  rule avg_sum_function
+    'AVG_SUM' space '(' space expression more_expressions:( space ',' space expression)* space ')' {
+      def eval(env = Environment.new)
+        strict = true
+        nr_of_vals = 0
+        values = expressions
+        strict_flag = values[0].eval(env)
+        if strict_flag.is_a?(TrueClass) || strict_flag.is_a?(FalseClass)
+          values.shift
+          strict = strict_flag
+        end
+        values.inject(0) do |sum, e|
+          next_val = e.eval(env)
+          sum + if next_val.is_a?(Array)
+            nr_of_vals = 0
+            res = next_val.inject(0) do |next_sum, val|
+              if val.is_a?(Array)
+                next_sum + val.inject(0) { |s, v| s + (v || 0) } / val.compact.size
+              else
+                nr_of_vals += 1 if val && (strict || (!strict && val != 0))
+                next_sum + (val || 0)
+              end
+            end 
+            nr_of_vals != 0 ? res / nr_of_vals : res
+          else
+            next_val || 0
+          end
+        end
+      end
+
+      def expressions
+        [ expression ] + more_expressions.elements.map { |e| e.expression }
+      end
+    }
+    /
+    'AVG_SUM' space '(' space ')' {
+      def eval(env = Environment.new)
+        0
+      end
+    }
+  end
+  
+  rule min_function
+    'MIN' space '(' space expression more_expressions:( space ',' space expression)* space ')' {
+      def eval(env = Environment.new)
+        expressions.map { |e| e.eval(env) }.min
+      end
+
+      def expressions
+        [ expression ] + more_expressions.elements.map { |e| e.expression }
+      end
+    }
+    /
+    'MIN' space '(' space ')' {
+      def eval(env = Environment.new)
+        0
+      end
+    }
+  end
+
+  rule max_function
+    'MAX' space '(' space expression more_expressions:( space ',' space expression)* space ')' {
+      def eval(env = Environment.new)
+        expressions.map { |e| e.eval(env) }.max
+      end
+
+      def expressions
+        [ expression ] + more_expressions.elements.map { |e| e.expression }
+      end
+    }
+    /
+    'MAX' space '(' space ')' {
+      def eval(env = Environment.new)
+        0
+      end
+    }
+  end
+
+  rule matching_ids_function
+    'MATCHING_IDS' space '(' space match_exp:expression space ',' space hash:expression space ')' {
+      def eval(env = Environment.new)
+        if(h = hash.eval(env)).is_a?(Hash)
+          h.select { |k, v| v == match_exp.eval(env) }.map { |entry| entry[0]  }
+        else
+          []
+        end
+      end
+    }
+    /
+    'MATCHING_IDS' space '(' space ')' {
+      def eval(env = Environment.new)
+        []
+      end
+    }
+  end
+
+  rule values_of_type_function
+    'VALUES_OF_TYPE' space '(' 
+      space match_exp:expression space ',' 
+      space all_types:expression space ','
+      space all_values:expression space 
+    ')' {
+      def eval(env = Environment.new)
+        types = all_types.eval(env)
+        if types.is_a?(Hash)
+          values = all_values.eval(env)
+          if values.is_a?(Hash)
+            types.select { |k, v| v == match_exp.eval(env) }.map do |entry| 
+              values[entry[0]]
+            end
+          else
+            raise Trxl::InvalidArgumentException, "Third parameter must be a Hash"
+          end
+        else
+          raise Trxl::InvalidArgumentException, "Second parameter must be a Hash"
+        end
+      end
+    }
+    /
+    'VALUES_OF_TYPE' space '(' space ')' {
+      def eval(env = Environment.new)
+        []
+      end
+    }
+  end
+
+
+  
+  rule non_space_char
+    !white .
+  end
+
+  
+  rule require_keyword
+    'require' !non_space_char
+  end
+  
+  rule case_keyword
+    'case' !non_space_char
+  end
+  
+  rule when_keyword
+    'when' !non_space_char
+  end
+  
+  rule then_keyword
+    'then' !non_space_char
+  end
+
+  rule if_keyword
+    'if' &('(' / SPACE)
+  end
+
+  rule else_keyword
+    'else' SPACE
+  end
+
+  rule end_keyword
+    'end' &( ';' / '}' / space)
+  end
+
+
+  rule comment
+    comment_to_eol / multiline_comment
+  end
+
+  rule multiline_comment
+  '/*' (!'*/' . )* '*/'
+  end
+
+  rule comment_to_eol
+    # TODO find out why this doesn't work in specs
+    #'#' (!"\n" .)+ "\n"
+
+    '#' (!"\n" .)*
+  end
+
+
+  # whitespace
+  rule white 
+    [ \r\t\n]+
+  end
+
+  # mandatory space
+  rule SPACE
+    (white / comment)+ 
+  end
+
+  # optional space
+  rule space
+    SPACE?
+  end
+
+end
