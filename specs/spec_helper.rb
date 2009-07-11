@@ -7,9 +7,7 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
 
-#require SPEC_ROOT.parent + 'lib/trxl'
-gem 'trxl'
-#require 'trxl'
+require SPEC_ROOT.parent + 'lib/trxl'
 
 module Trxl
   module SpecHelper

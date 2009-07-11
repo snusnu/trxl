@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
      "README",
      "Rakefile",
      "VERSION",
+     "lib/trxl.rb",
      "lib/trxl/trxl.rb",
      "lib/trxl/trxl_grammar.rb",
      "lib/trxl/trxl_grammar.treetop",
