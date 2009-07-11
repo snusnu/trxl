@@ -5,7 +5,7 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "trxl"
-    gem.summary = %Q{TODO}
+    gem.summary = %Q{A specced little language written with ruby and treetop. It has lambdas, recursion, conditionals, arrays, hashes, ranges, strings, arithmetics and some other stuff. It even has a small code import facility. }
     gem.email = "ma@zive.at"
     gem.homepage = "http://github.com/snusnu/trxl"
     gem.authors = ["snusnu"]

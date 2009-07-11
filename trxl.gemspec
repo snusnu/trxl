@@ -45,7 +45,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.4}
-  s.summary = %q{TODO}
+  s.summary = %q{A specced little language written with ruby and treetop. It has lambdas, recursion, conditionals, arrays, hashes, ranges, strings, arithmetics and some other stuff. It even has a small code import facility.}
 
   if s.respond_to? :specification_version then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
