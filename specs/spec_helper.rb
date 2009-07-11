@@ -1,8 +1,17 @@
+require "rubygems"
 require "treetop"
-require "#{File.dirname(__FILE__)}/../lib/trxl/trxl"
+require "pathname"
+
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
+SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
+
+#require SPEC_ROOT.parent + 'lib/trxl'
+gem 'trxl'
+#require 'trxl'
 
 module Trxl
-  
   module SpecHelper
   
     # raise unless successful
@@ -17,7 +26,5 @@ module Trxl
       ast = parse(expression)
       ast.eval(env)
     end
-  
   end
-  
 end

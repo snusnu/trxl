@@ -1,11 +1,7 @@
-require "rubygems"
-require "treetop"
-
 # load treetop grammar
 # this is done independent of RAILS_ROOT to allow easy
 # speccing outside of rails context
 # TODO once stable, replace this with a simple require
-Treetop.load "#{File.dirname(__FILE__)}/trxl_grammar.treetop"
 
 class Hash
   def to_s
