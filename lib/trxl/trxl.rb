@@ -3,18 +3,6 @@
 # speccing outside of rails context
 # TODO once stable, replace this with a simple require
 
-class Hash
-  def to_s
-    inspect
-  end
-end
-
-class Array
-  def to_s
-    inspect
-  end
-end
-
 
 # reopen treetop generated module
 module Trxl

@@ -8,13 +8,10 @@ describe "The Trxl::StdLib" do
     @parser = Trxl::Calculator.new
   end
   
-  
   it "should be able to parse the whole Trxl::StdLib code" do
     lambda { parse(Trxl::Calculator.stdlib) }.should_not raise_error
   end
   
-  
-
   it "should define a foreach function with read access to the outer env" do
     program = <<-PROGRAM
       require 'stdlib/foreach_in';
