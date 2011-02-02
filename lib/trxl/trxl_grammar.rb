@@ -1108,7 +1108,7 @@ module Trxl
             #{ruby_when_expressions(env)}
             else #{else_val.is_a?(String) ? "'#{else_val}'" : else_val}
           end
-        end [] # call this lambda immediately   
+        end [] # call this lambda immediately
       CASE_STMT
     end
 
@@ -1225,7 +1225,7 @@ module Trxl
     def eval(env = Environment.new)
       condition = when_exp.eval(env)
       expression = statement_list.eval(env)
-      { 
+      {
         # use '' instead of "" since we don't care about var replacement now
         :condition =>  (condition.is_a?(String)  ? "'#{condition}'"  : condition),
         :expression => (expression.is_a?(String) ? "'#{expression}'" : expression)
@@ -1837,7 +1837,7 @@ module Trxl
     def eval(env = Environment.new)
       []
     end
- 
+
     def to_s(env = Environment.new)
       '()'
     end
@@ -2257,7 +2257,7 @@ module Trxl
     def eval(env = Environment.new)
       {}
     end
- 
+
     def to_s(env = Environment.new)
       text_value
     end
@@ -2474,7 +2474,7 @@ module Trxl
     def eval(env = Environment.new)
       { key.eval(env) => value.eval(env) }
     end
- 
+
     def to_s(env = Environment.new)
       text_value
     end
@@ -2557,7 +2557,7 @@ module Trxl
     def eval(env = Environment.new)
       []
     end
- 
+
     def to_s(env = Environment.new)
       text_value
     end
@@ -2957,7 +2957,7 @@ module Trxl
         raise Trxl::InvalidOperationException, "Left operand is not an Array"
       end
     end
-    
+
     # override default behavior since it's not possible to push into nil
     def lhs_nil_allowed?
       false
@@ -4302,7 +4302,7 @@ module Trxl
       if env.has_key?(name)
         value = env[name]
         (value.is_a?(Array) || value.is_a?(Hash)) ? value.inspect : value.to_s
-      else 
+      else
         text_value
       end
     end
@@ -4729,7 +4729,7 @@ module Trxl
     def eval(env = Environment.new)
       to_s(env)
     end
-   
+
     def to_s(env = Environment.new)
       help =  "-----------------------------------------\n"
       help =  "           TRXL Language HELP            \n"
@@ -4823,12 +4823,12 @@ module Trxl
       help << "    => 1\n"
       help << "-----------------------------------------\n"
       help << "14) Range variables and literals\n"
-      help << "    range_including_upper = 1..5\n" 
-      help << "    => [ 1, 2, 3, 4, 5 ]\n" 
+      help << "    range_including_upper = 1..5\n"
+      help << "    => [ 1, 2, 3, 4, 5 ]\n"
       help << "    SIZE(range_including_upper);\n"
       help << "    => 5\n"
       help << "    range_excluding_upper = 1...5\n"
-      help << "    => [ 1, 2, 3, 4 ]\n" 
+      help << "    => [ 1, 2, 3, 4 ]\n"
       help << "    SIZE(range_excluding_upper);\n"
       help << "    => 4\n"
       help << "    SIZE([1..5);\n"
@@ -4836,8 +4836,8 @@ module Trxl
       help << "-----------------------------------------\n"
       help << "15) Conditional branching and recursion:\n"
       help << "    factorial = fun(x) {\n"
-      help << "      if(x == 0)\n" 
-      help << "        1\n" 
+      help << "      if(x == 0)\n"
+      help << "        1\n"
       help << "      else\n"
       help << "        x * factorial(x - 1)\n"
       help << "      end\n"
@@ -4847,8 +4847,8 @@ module Trxl
       help << "-----------------------------------------\n"
       help << "16) Conditional branching:\n"
       help << "    foo = fun(x) {\n"
-      help << "      if(x == 0)\n" 
-      help << "        0\n" 
+      help << "      if(x == 0)\n"
+      help << "        0\n"
       help << "      elsif(x == 1)\n"
       help << "        1\n"
       help << "      else\n"
@@ -4864,10 +4864,10 @@ module Trxl
       help << "-----------------------------------------\n"
       help << "17) case expressions:\n"
       help << "    foo = fun(x) {\n"
-      help << "      case x\n" 
-      help << "        when 0 then 0\n" 
-      help << "        when 1 then 1\n" 
-      help << "        when 2 then 2\n" 
+      help << "      case x\n"
+      help << "        when 0 then 0\n"
+      help << "        when 1 then 1\n"
+      help << "        when 2 then 2\n"
       help << "        else 3\n"
       help << "      end\n"
       help << "    }\n"
@@ -5128,7 +5128,7 @@ module Trxl
 
   module PrintLineFunction1
     def eval(env = Environment.new)
-      result = expression.eval(env) 
+      result = expression.eval(env)
       puts (result.is_a?(Array) || result.is_a?(Hash)) ? result.inspect : result.to_s
     end
   end
@@ -5294,7 +5294,7 @@ module Trxl
 
   module PrintFunction1
     def eval(env = Environment.new)
-      result = expression.eval(env) 
+      result = expression.eval(env)
       print (result.is_a?(Array) || result.is_a?(Hash)) ? result.inspect : result.to_s
     end
   end
@@ -6046,12 +6046,12 @@ module Trxl
 
   module SumFunction2
     def eval(env = Environment.new)
-      evaluated_expressions(env).compact.inject(0) do |sum, val| 
+      evaluated_expressions(env).compact.inject(0) do |sum, val|
         sum + if val.is_a?(Array)
           val.flatten.compact.inject(0) { |next_sum, v| next_sum + v }
         else
           val
-        end 
+        end
       end
     end
 
@@ -6285,12 +6285,12 @@ module Trxl
     def eval(env = Environment.new)
       values = evaluated_expressions(env).compact
       return 0 if values.size == 0
-      values.inject(1) do |sum, val| 
+      values.inject(1) do |sum, val|
         sum * if val.is_a?(Array)
           val.flatten.compact.inject(1) { |next_sum, v| next_sum * v }
         else
           val
-        end 
+        end
       end
     end
 
@@ -6537,14 +6537,14 @@ module Trxl
 
       s = values.inject(0) do |sum, next_val|
         sum + if next_val.is_a?(Array)
-          next_val.flatten.inject(0) do |next_sum, val| 
+          next_val.flatten.inject(0) do |next_sum, val|
             nr_of_vals += 1 if val && (strict || (!strict && val != 0))
             next_sum + (val || 0)
           end
         else
           nr_of_vals += 1 if next_val && (strict || (!strict && next_val != 0))
           next_val || 0
-        end 
+        end
       end
       (s != 0 && nr_of_vals != 0) ? s.to_f / nr_of_vals : 0
     end
@@ -6792,7 +6792,7 @@ module Trxl
               nr_of_vals += 1 if val && (strict || (!strict && val != 0))
               next_sum + (val || 0)
             end
-          end 
+          end
           nr_of_vals != 0 ? res / nr_of_vals : res
         else
           next_val || 0
@@ -7691,7 +7691,7 @@ module Trxl
       if types.is_a?(Hash)
         values = all_values.eval(env)
         if values.is_a?(Hash)
-          types.select { |k, v| v == match_exp.eval(env) }.map do |entry| 
+          types.select { |k, v| v == match_exp.eval(env) }.map do |entry|
             values[entry[0]]
           end
         else
