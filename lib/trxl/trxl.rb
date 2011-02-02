@@ -333,7 +333,9 @@ module Trxl
 
     FOREACH_IN = <<-PROGRAM
       foreach_in = fun(enumerable, body) {
-        _foreach_in_(enumerable, body, 0);
+        if(SIZE(enumerable) > 0)
+          _foreach_in_(enumerable, body, 0)
+        end
       };
       _foreach_in_ = fun(enumerable, body, index) {
         if(index < SIZE(enumerable) - 1)
