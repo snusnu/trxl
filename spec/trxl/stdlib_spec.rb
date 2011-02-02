@@ -33,6 +33,26 @@ describe "The Trxl::StdLib" do
     eval(program).should == 55
   end
 
+  it "should define an inject function that returns the original memo for empty enumerables" do
+    program = <<-PROGRAM
+      require 'stdlib/inject';
+      inject(0, [], fun(memo, val) { memo + val });
+    PROGRAM
+    eval(program).should == 0
+
+    program = <<-PROGRAM
+      require 'stdlib/inject';
+      inject([], [], fun(memo, val) { memo << val });
+    PROGRAM
+    eval(program).should == []
+
+    program = <<-PROGRAM
+      require 'stdlib/inject';
+      inject({}, [], fun(memo, val) { memo[val] });
+    PROGRAM
+    eval(program).should == {}
+  end
+
   it "should define an inject function with read access to the outer env" do
     program = <<-PROGRAM
       require 'stdlib/inject';

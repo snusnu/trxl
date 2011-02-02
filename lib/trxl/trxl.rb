@@ -347,7 +347,11 @@ module Trxl
 
     INJECT = <<-PROGRAM
       inject = fun(memo, enumerable, body) {
-        _inject_(memo, enumerable, body, 0);
+        if(SIZE(enumerable) > 0)
+          _inject_(memo, enumerable, body, 0)
+        else
+          memo
+        end
       };
       _inject_ = fun(memo, enumerable, body, index) {
         if(index < SIZE(enumerable) - 1)
