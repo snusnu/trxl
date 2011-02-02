@@ -20,11 +20,16 @@
 6)  Built in functions:
     HELP,ENV,SIZE,SPLIT,ROUND,MIN,MAX
     SUM,MULT,AVG, PRINT, PRINT_LINE
-    TO_INT, TO_FLOAT, TO_ARRAY
+    TO_INT, TO_FLOAT, TO_ARRAY, AVG_SUM
+    MATCHING_IDS, VALUES_OF_TYPE
 -----------------------------------------
 7)  Standard library functions:
-    Use to iterate over Arrays or Strings
-    FOREACH_IN, INJECT
+    Use to iterate over Arrays or Strings:
+    foreach_in, inject, map, select
+    reject, in_groups_of, sum_of_type
+    avg_sum_of_type, avg_range_sum_of_type
+    total_range_sum_of_type, ratio
+    year_from_date, month_from_date
 -----------------------------------------
 8)  Access the current environment:
     ENV; (your output may differ)
@@ -129,10 +134,12 @@
 17) case expressions:
     foo = fun(x) {
       case x
-      when 0 then 0
-      when 1 then 1
-      when 2 then 2
-      else 3
+      when NULL then NULL
+      when 0    then 0
+      when 1    then 1
+      when 2    then 2
+      else          
+        3
       end
     }
     foo(1);
