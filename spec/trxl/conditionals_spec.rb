@@ -3,11 +3,11 @@ require 'spec_helper'
 describe "For conditional evaluation, the language" do
 
   include Trxl::SpecHelper
-  
+
   before(:each) do
     @parser = Trxl::Calculator.new
   end
-  
+
   it "should be able to evaluate conditional 'if' expressions without elsif and else branches" do
     program =  "test = fun(x) { if(x) TRUE end };"
     eval(program + "test(TRUE)").should be_true
@@ -23,7 +23,7 @@ describe "For conditional evaluation, the language" do
       end
     PROGRAM
     eval(program).should be_true
-    
+
     program = <<-PROGRAM
       if(FALSE)
         TRUE
@@ -32,7 +32,7 @@ describe "For conditional evaluation, the language" do
       end
     PROGRAM
     eval(program).should be_false
-    
+
     program = <<-PROGRAM
       if(NULL)
         TRUE
@@ -41,7 +41,7 @@ describe "For conditional evaluation, the language" do
       end
     PROGRAM
     eval(program).should be_false
-    
+
     program = <<-PROGRAM
       if(NULL != NULL)
         TRUE
@@ -200,7 +200,7 @@ describe "For conditional evaluation, the language" do
     PROGRAM
     eval(program).should == "else branch"
   end
-  
+
   it "should be able to evaluate conditional 'if' expressions with multiple elsif and an else branch" do
     program = <<-PROGRAM
     foo = fun() {
@@ -217,7 +217,7 @@ describe "For conditional evaluation, the language" do
     foo();
     PROGRAM
     eval(program).should == 0
-    
+
     program = <<-PROGRAM
     foo = fun() {
       if(2 == 1)
@@ -233,7 +233,7 @@ describe "For conditional evaluation, the language" do
     foo();
     PROGRAM
     eval(program).should == 1
-    
+
     program = <<-PROGRAM
     foo = fun() {
       if(2 == 0)
@@ -249,7 +249,7 @@ describe "For conditional evaluation, the language" do
     foo();
     PROGRAM
     eval(program).should == 2
-    
+
     program = <<-PROGRAM
     foo = fun() {
       if(2 == 0)
@@ -265,7 +265,7 @@ describe "For conditional evaluation, the language" do
     foo();
     PROGRAM
     eval(program).should == 3
-    
+
     program = <<-PROGRAM
     foo = fun(value) {
       if(value <=  5000)
@@ -284,9 +284,9 @@ describe "For conditional evaluation, the language" do
     };
     foo(13000);
     PROGRAM
-    eval(program).should == 15.92 
+    eval(program).should == 15.92
   end
-  
+
   it "should allow an arbitrary number of statements inside if/elsif/else expressions" do
     program = <<-PROGRAM
     foo = fun() {
@@ -306,7 +306,7 @@ describe "For conditional evaluation, the language" do
     };
     foo();
     PROGRAM
-    eval(program).should == 0   
+    eval(program).should == 0
 
     program = <<-PROGRAM
     foo = fun() {
@@ -326,7 +326,7 @@ describe "For conditional evaluation, the language" do
     };
     foo();
     PROGRAM
-    eval(program).should == 1   
+    eval(program).should == 1
 
     program = <<-PROGRAM
     foo = fun() {
@@ -346,7 +346,7 @@ describe "For conditional evaluation, the language" do
     };
     foo();
     PROGRAM
-    eval(program).should == 2   
+    eval(program).should == 2
 
     program = <<-PROGRAM
     foo = fun() {
@@ -366,9 +366,9 @@ describe "For conditional evaluation, the language" do
     };
     foo();
     PROGRAM
-    eval(program).should == 3  
+    eval(program).should == 3
   end
-  
+
   it "should allow arbitrary expressions as conditional expression" do
     program =  "test = fun(x) {if(x == 0) TRUE else FALSE end};"
     program << "test(0)"
@@ -432,6 +432,20 @@ describe "For conditional evaluation, the language" do
     foo("hello");
     PROGRAM
     eval(program).should == "something else"
+
+    program = <<-PROGRAM
+    foo = fun(x) {
+      case x
+        when NULL then "nil"
+        when 2 then "two"
+        when 3 then "three"
+        else FALSE
+      end
+    };
+    foo(NULL);
+    PROGRAM
+    eval(program).should == "nil"
+
   end
 
   it "should allow multiple statements in each branch of a 'case' expression" do
@@ -450,5 +464,5 @@ describe "For conditional evaluation, the language" do
     PROGRAM
     eval(program).should == [ 1, "one" ]
   end
-  
+
 end

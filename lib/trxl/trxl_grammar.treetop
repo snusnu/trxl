@@ -158,14 +158,13 @@ grammar Trxl
       def eval(env = Environment.new)
         case_val = case_exp.eval(env)
         else_val = else_exp.eval(env)
-        Kernel.eval <<-CASE_STMT
-          lambda do
-            case #{case_val.is_a?(String) ? "'#{case_val}'" : case_val}
-              #{ruby_when_expressions(env)}
-              else #{else_val.is_a?(String) ? "'#{else_val}'" : else_val}
-            end
-          end [] # call this lambda immediately
-        CASE_STMT
+
+        Kernel.eval <<-CASE
+          case case_val
+            #{ruby_when_expressions(env)}
+            else #{else_val.is_a?(String) ? "'#{else_val}'" : else_val}
+          end
+        CASE
       end
 
       def ruby_when_expressions(env = Environment.new)
@@ -185,9 +184,18 @@ grammar Trxl
         expression = statement_list.eval(env)
         {
           # use '' instead of "" since we don't care about var replacement now
-          :condition =>  (condition.is_a?(String)  ? "'#{condition}'"  : condition),
+          :condition =>  ruby_when_condition(condition),
           :expression => (expression.is_a?(String) ? "'#{expression}'" : expression)
         }
+      end
+
+      def ruby_when_condition(condition)
+        case condition
+        when nil then "nil"
+        when String then "'#{condition}'"
+        else
+          condition
+        end
       end
     }
   end
