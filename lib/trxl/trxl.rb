@@ -367,8 +367,8 @@ module Trxl
     MAP = <<-PROGRAM
       require 'stdlib/inject';
       map = fun(enumerable, body) {
-        b = body; # WORK AROUND a bug in Trxl::Environment
-        inject([], enumerable, fun(memo, e) { memo << b(e); });
+        __body__ = body; # WORK AROUND a bug in Trxl::Environment
+        inject([], enumerable, fun(memo, e) { memo << __body__(e) })
       };
     PROGRAM
 
