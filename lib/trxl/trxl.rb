@@ -425,6 +425,53 @@ module Trxl
       };
     IN_GROUPS_OF
 
+    HASH_VALUES = <<-HASH_VALUES
+      require 'stdlib/map';
+      hash_values = fun(hash) {
+        map(TO_ARRAY(hash), fun(pair) { pair[1] });
+      };
+    HASH_VALUES
+
+    HASH_VALUE_SUM = <<-VALUE_SUM
+      require 'stdlib/hash_values';
+      hash_value_sum = fun(hash) {
+        SUM(hash_values(hash))
+      };
+    VALUE_SUM
+
+    AVG_HASH_VALUE_SUM = <<-AVG_HASH_VALUE_SUM
+      require 'stdlib/hash_values';
+      avg_hash_value_sum = fun(hash) {
+        AVG_SUM(hash_values(hash))
+      };
+    AVG_HASH_VALUE_SUM
+
+    HASH_RANGE_VALUES = <<-HASH_RANGE_VALUES
+      require 'stdlib/foreach_in';
+      require 'stdlib/hash_values';
+      hash_range_values = fun(hash_range) {
+        inject([], hash_range, fun(values, hash_variable) {
+          values << hash_values(ENV[hash_variable]);
+        });
+      };
+    HASH_RANGE_VALUES
+
+    HASH_RANGE_VALUE_SUM = <<-HASH_RANGE_VALUE_SUM
+      require 'stdlib/hash_range_values';
+      hash_range_value_sum = fun(hash_range) {
+        SUM(hash_range_values(hash_range))
+      };
+    HASH_RANGE_VALUE_SUM
+
+    AVG_HASH_RANGE_VALUE_SUM = <<-AVG_HASH_RANGE_VALUE_SUM
+      require 'stdlib/hash_range_values';
+      avg_hash_range_value_sum = fun(hash_range) {
+        inject(0, hash_range_values(hash_range), fun(sum, bucket) {
+          sum + AVG_SUM(bucket);
+        });
+      };
+    AVG_HASH_RANGE_VALUE_SUM
+
     SUM_OF_TYPE = <<-SUM_OF_TYPE
       sum_of_type = fun(type, all_types, all_values) {
         SUM(VALUES_OF_TYPE(type, all_types, all_values));

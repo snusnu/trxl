@@ -295,6 +295,146 @@ describe "The Trxl::StdLib" do
     eval(program).should == [ 3, 7 ]
   end
 
+  it "should define a 'hash_values' function" do
+    program = <<-PROGRAM
+      require 'stdlib/hash_values';
+      hash_values(hash);
+    PROGRAM
+
+    eval(program, :hash => {}).should == []
+
+    eval(program, {
+      :hash => {
+        1 => 100,
+        2 => 200,
+        3 => 300
+      }
+    }).should == [ 100, 200, 300 ]
+
+    eval(program, {
+      :hash => {
+        1 => [ 100, 100, 100 ],
+        2 => [ 200, 200, 200 ],
+        3 => [ 300, 300, 300 ]
+      }
+    }).should == [
+      [ 100, 100, 100 ],
+      [ 200, 200, 200 ],
+      [ 300, 300, 300 ],
+    ]
+  end
+
+  it "should define a 'hash_range_values' function" do
+    program = <<-PROGRAM
+      require 'stdlib/hash_range_values';
+      hash_range_values('a'..'b');
+    PROGRAM
+
+    eval(program, {
+      :a => { 1 => 100 },
+      :b => { 2 => 200 }
+    }).should == [
+      [100],
+      [200]
+    ]
+
+    eval(program, {
+      :a => { 1 => [ 100, 100, 100 ], 2 => [ 200, 200, 200 ] },
+      :b => { 3 => [ 300, 300, 300 ], 4 => [ 400, 400, 400 ] }
+    }).should == [
+      [ [100, 100, 100], [ 200, 200, 200 ] ],
+      [ [300, 300, 300], [ 400, 400, 400 ] ]
+    ]
+  end
+
+  it "should define a 'hash_value_sum' function" do
+
+    program = <<-PROGRAM
+      require 'stdlib/hash_value_sum';
+      hash_value_sum(hash);
+    PROGRAM
+
+    eval(program, :hash => {}).should == 0
+
+    eval(program, {
+      :hash => {
+        1 => 100,
+        2 => 200,
+        3 => 300
+      }
+    }).should == 600
+
+    eval(program, {
+      :hash => {
+        1 => [ 100, 100, 100 ],
+        2 => [ 200, 200, 200 ],
+        3 => [ 300, 300, 300 ]
+      }
+    }).should == 1800
+  end
+
+  it "should define a 'avg_hash_value_sum' function" do
+
+    program = <<-PROGRAM
+      require 'stdlib/avg_hash_value_sum';
+      avg_hash_value_sum(hash);
+    PROGRAM
+
+    eval(program, :hash => {}).should == 0
+
+    eval(program, {
+      :hash => {
+        1 => 100,
+        2 => 200,
+        3 => 300
+      }
+    }).should == 200
+
+    eval(program, {
+      :hash => {
+        1 => [ 100, 110, 120 ],
+        2 => [ 200, 210, 220 ],
+        3 => [ 300, 310, 320 ]
+      }
+    }).should == 630
+  end
+
+  it "should define a 'hash_range_value_sum' function" do
+
+    program = <<-PROGRAM
+      require 'stdlib/hash_range_value_sum';
+      hash_range_value_sum('a'..'b');
+    PROGRAM
+
+    eval(program, {
+      :a => { 1 => 100 },
+      :b => { 2 => 200 }
+    }).should == 300
+
+    eval(program, {
+      :a => { 1 => [ 100, 100, 100 ] },
+      :b => { 2 => [ 200, 200, 200 ] }
+    }).should == 900
+  end
+
+  it "should define a 'avg_hash_range_value_sum' function" do
+
+    program = <<-PROGRAM
+      require 'stdlib/avg_hash_range_value_sum';
+      avg_hash_range_value_sum('a'..'b');
+    PROGRAM
+
+    eval(program, {
+      :a => { 1 => 100 },
+      :b => { 2 => 200 }
+    }).should == 300
+
+    eval(program, {
+      :a => { 1 => [ 100, 110, 120 ] },
+      :b => { 2 => [ 200, 210, 220 ] }
+    }).should == 320
+  end
+
   it "should define a 'sum_of_type' function" do
     env = {
       :types => {
