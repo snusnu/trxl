@@ -24,7 +24,6 @@
     MATCHING_IDS, VALUES_OF_TYPE
 -----------------------------------------
 7)  Standard library functions:
-    Use to iterate over Arrays or Strings:
     foreach_in, inject, map, select
     reject, in_groups_of, sum_of_type
     avg_sum_of_type, avg_range_sum_of_type

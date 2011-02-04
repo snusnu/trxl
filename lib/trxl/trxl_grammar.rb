@@ -4926,7 +4926,6 @@ module Trxl
       help << "    MATCHING_IDS, VALUES_OF_TYPE\n"
       help << "-----------------------------------------\n"
       help << "7)  Standard library functions:\n"
-      help << "    Use to iterate over Arrays or Strings\n"
       help << "    foreach_in, inject, map, select\n"
       help << "    reject, in_groups_of, sum_of_type\n"
       help << "    avg_sum_of_type, avg_range_sum_of_type\n"
