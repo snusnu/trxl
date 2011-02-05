@@ -1,10 +1,3 @@
-# load treetop grammar
-# this is done independent of RAILS_ROOT to allow easy
-# speccing outside of rails context
-# TODO once stable, replace this with a simple require
-
-
-# reopen treetop generated module
 module Trxl
 
   class TrxlException < Exception; end
@@ -24,8 +17,6 @@ module Trxl
 
   class Assignment < Treetop::Runtime::SyntaxNode; end
   class Variable < Treetop::Runtime::SyntaxNode; end
-
-
 
   class Environment
 
@@ -324,11 +315,6 @@ module Trxl
 
   end
 
-
-  # This module exists only for performance reason.
-  # Loading the stdlib directly from a ruby object,
-  # should be much faster than loading it from a file.
-
   module StdLib
 
     FOREACH_IN = <<-PROGRAM
@@ -549,7 +535,7 @@ module Trxl
 
   class Calculator
 
-    extend StdLib # optimized for performance
+    extend StdLib
 
     class << self
 
