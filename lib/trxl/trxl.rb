@@ -1,22 +1,20 @@
 module Trxl
 
-  class TrxlException < Exception; end
-  class InternalError < TrxlException; end
-  class FatalParseError < TrxlException; end
-  class DivisionByZeroError < FatalParseError; end
-  class MissingFormulaException < TrxlException; end
-  class MissingVariableException < TrxlException; end
-  class InvalidOperationException < TrxlException; end
-  class InvalidArgumentException < TrxlException; end
-  class WrongNumberOfArgumentsException < TrxlException; end
-
-  class MissingLibraryException < TrxlException; end
-  class NotImplementedException < TrxlException; end
-
-  class ExitScopeNotAllowedException < TrxlException; end
+  class TrxlException                   < Exception;       end
+  class InternalError                   < TrxlException;   end
+  class FatalParseError                 < TrxlException;   end
+  class DivisionByZeroError             < FatalParseError; end
+  class MissingFormulaException         < TrxlException;   end
+  class MissingVariableException        < TrxlException;   end
+  class InvalidOperationException       < TrxlException;   end
+  class InvalidArgumentException        < TrxlException;   end
+  class WrongNumberOfArgumentsException < TrxlException;   end
+  class MissingLibraryException         < TrxlException;   end
+  class NotImplementedException         < TrxlException;   end
+  class ExitScopeNotAllowedException    < TrxlException;   end
 
   class Assignment < Treetop::Runtime::SyntaxNode; end
-  class Variable < Treetop::Runtime::SyntaxNode; end
+  class Variable   < Treetop::Runtime::SyntaxNode; end
 
   class Environment
 
