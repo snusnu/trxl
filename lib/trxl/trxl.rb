@@ -318,13 +318,13 @@ module Trxl
     FOREACH_IN = <<-PROGRAM
       foreach_in = fun(enumerable, body) {
         if(SIZE(enumerable) > 0)
-          _foreach_in_(enumerable, body, 0)
+          __foreach_in__(enumerable, body, 0)
         end
       };
-      _foreach_in_ = fun(enumerable, body, index) {
+      __foreach_in__ = fun(enumerable, body, index) {
         if(index < SIZE(enumerable) - 1)
           body(enumerable[index]);
-          _foreach_in_(enumerable, body, index + 1)
+          __foreach_in__(enumerable, body, index + 1)
         else
           body(enumerable[index])
         end
@@ -334,14 +334,14 @@ module Trxl
     INJECT = <<-PROGRAM
       inject = fun(memo, enumerable, body) {
         if(SIZE(enumerable) > 0)
-          _inject_(memo, enumerable, body, 0)
+          __inject__(memo, enumerable, body, 0)
         else
           memo
         end
       };
-      _inject_ = fun(memo, enumerable, body, index) {
+      __inject__ = fun(memo, enumerable, body, index) {
         if(index < SIZE(enumerable) - 1)
-          _inject_(body(memo, enumerable[index]), enumerable, body, index + 1)
+          __inject__(body(memo, enumerable[index]), enumerable, body, index + 1)
         else
           body(memo, enumerable[index])
         end
@@ -352,16 +352,16 @@ module Trxl
       require 'stdlib/inject';
       map = fun(enumerable, body) {
         __body__ = body; # WORK AROUND a bug in Trxl::Environment
-        inject([], enumerable, fun(memo, e) { memo << __body__(e) })
+        inject([], enumerable, fun(memo, e) { memo << __body__(e); });
       };
     PROGRAM
 
     SELECT = <<-PROGRAM
       require 'stdlib/inject';
       select = fun(enumerable, body) {
-        b = body; # WORK AROUND a bug in Trxl::Environment
+        __body__ = body; # WORK AROUND a bug in Trxl::Environment
         inject([], enumerable, fun(selected, value) {
-          if(b(value))
+          if(__body__(value))
             selected << value
           else
             selected
@@ -373,9 +373,9 @@ module Trxl
     REJECT = <<-REJECT
       require 'stdlib/inject';
       reject = fun(enumerable, filter) {
-        f = filter; # WORKAROUND for a bug in Trxl::Environment
+        __filter__ = filter; # WORKAROUND for a bug in Trxl::Environment
         inject([], enumerable, fun(rejected, value) {
-          if(f(value))
+          if(__filter__(value))
             rejected
           else
             rejected << value
