@@ -12,9 +12,9 @@ describe "For defining Trxl::StdLib, the Trxl::Calculator" do
     program = "require 'stdlib'"
     env_after_require = eval(program)
     env_after_require.should have_key(:foreach_in)
-    env_after_require.should have_key(:_foreach_in_)
+    env_after_require.should have_key(:__foreach_in__)
     env_after_require.should have_key(:inject)
-    env_after_require.should have_key(:_inject_)
+    env_after_require.should have_key(:__inject__)
     env_after_require.should have_key(:map)
     env_after_require.should have_key(:ratio)
   end
