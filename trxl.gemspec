@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{trxl}
-  s.version = "0.1.5"
+  s.version = "0.1.6"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Martin Gamsjaeger (snusnu)", "Michael Aufreiter"]
-  s.date = %q{2011-02-02}
+  s.date = %q{2011-02-07}
   s.description = %q{A specced little language written with ruby and treetop. It has lambdas, recursion, conditionals, arrays, hashes, ranges, strings, arithmetics and some other stuff. It even has a small code import facility.}
   s.email = %q{gamsnjaga [at] gmail [dot] com}
   s.extra_rdoc_files = [
