@@ -488,6 +488,15 @@ module Trxl
       };
     TOTAL_RANGE_SUM_OF_TYPE
 
+    AVG_RANGE_SUM = <<-AVG_RANGE_SUM
+      require 'stdlib/inject';
+      avg_range_sum = fun(variable_range) {
+        inject(0, variable_range, fun(sum, variable) {
+          sum + AVG_SUM(ENV[variable])
+        });
+      };
+    AVG_RANGE_SUM
+
     YEAR_FROM_DATE = <<-YEAR_FROM_DATE
       year_from_date = fun(date) {
         date = SPLIT(date, '/');

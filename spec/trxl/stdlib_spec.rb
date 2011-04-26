@@ -521,6 +521,27 @@ describe "The Trxl::StdLib" do
     eval("#{req_stmt} avg_range_sum_of_type('Sonstige', types, 'a'..'b');", env).should == 600
   end
 
+  it "should define a 'avg_range_sum' function" do
+
+    program = <<-PROGRAM
+      require 'stdlib/avg_range_sum';
+      avg_range_sum('a'..'c');
+    PROGRAM
+
+    eval(program, {
+      :a => [],
+      :b => [],
+      :c => []
+    }).should == 0
+
+    eval(program, {
+      :a => [100, 200, 300],
+      :b => [400, 500, 600],
+      :c => [700, 800, 900]
+    }).should == 1500
+
+  end
+
   it "should define a 'year_from_date' function" do
     req_stmt = "require 'stdlib/year_from_date';"
     eval("#{req_stmt} year_from_date('01/1999');").should == 1999
