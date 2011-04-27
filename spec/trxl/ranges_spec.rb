@@ -37,6 +37,9 @@ describe "When working with Ranges, the Trxl::Calculator" do
     eval("'aa'..'ac'").should == [ "aa", "ab", "ac" ]
     eval("'aa'...'ac'").should == [ "aa", "ab" ]
 
+    eval("'a'.. 'ac'").should == %w[a b c d e f g h i j k l m n o p q r s t u v w x y z aa ab ac]
+    eval("'a'...'ac'").should == %w[a b c d e f g h i j k l m n o p q r s t u v w x y z aa ab]
+
     eval("1..5 == [ 1, 2, 3, 4, 5 ]").should be_true
     eval("1...5 == [ 1, 2, 3, 4 ]").should be_true
 
