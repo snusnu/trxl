@@ -132,12 +132,20 @@ describe "The language" do
     eval(program).should == 0
     program =  "AVG(NULL)"
     eval(program).should be_nil
+    program =  "AVG(FALSE, NULL)"
+    eval(program).should be_nil
+    program =  "AVG(NULL, NULL)"
+    eval(program).should be_nil
+    program =  "AVG(FALSE, NULL, NULL)"
+    eval(program).should be_nil
+    program =  "AVG([NULL, NULL])"
+    eval(program).should == 0
+    program =  "AVG(FALSE, [NULL, NULL])"
+    eval(program).should == 0
     program =  "AVG(0)"
     eval(program).should == 0
     program =  "AVG(1)"
     eval(program).should == 1
-    program =  "AVG(3,3,3)"
-    eval(program).should == 3
     program =  "AVG(3,3,3)"
     eval(program).should == 3
     program =  "AVG(3,5,0)"
