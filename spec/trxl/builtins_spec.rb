@@ -3,16 +3,16 @@ require 'spec_helper'
 describe "The language" do
 
   include Trxl::SpecHelper
-  
+
   before(:each) do
     @parser = Trxl::Calculator.new
   end
-  
+
   it "should allow to access the current environment by calling ENV" do
     env = eval("ENV", {})
     env.should be_kind_of(Trxl::Environment)
     env.should be_empty
-    
+
     env = eval("ENV", { :a => 1, :b => 2 })
     env.should be_kind_of(Trxl::Environment)
     env.should have_key(:a)
@@ -36,24 +36,24 @@ describe "The language" do
     eval("ENV['a'..'c']", { :a => 1, :b => 2, :c => 3 }).should include(2)
     eval("ENV['a'..'c']", { :a => 1, :b => 2, :c => 3 }).should include(3)
   end
-  
+
   it "should be able to PRINT and PRINT_LINE to STDOUT" do
     eval("PRINT('- This is output from PRINT. ')").should be_nil
     eval("PRINT_LINE('And this is output from PRINT_LINE')").should be_nil
   end
-  
+
   it "should be able to split strings by calling SPLIT(some_string, split_char)" do
     eval("SPLIT('foo/bar', '/')").should == [ 'foo', 'bar' ]
   end
-  
+
   it "should be able to convert values into integers by calling TO_INT(alpha_numeric_string)" do
     eval("TO_INT('1')").should == 1
   end
-  
+
   it "should be able to convert values into floats by calling TO_FLOAT(alpha_numeric_string)" do
     eval("TO_FLOAT('1.12')").should == 1.12
   end
-  
+
   it "should be able to convert values into arrays by calling TO_ARRAY(some_value)" do
     eval("TO_ARRAY(1)").should == [ 1 ]
     eval("TO_ARRAY('1')").should == [ '1' ]
@@ -100,14 +100,14 @@ describe "The language" do
     eval(program).should == 12
     program = "SUM(x)"
     eval(program, { :x => [ 1, 2, 3 ] }).should == 6
-    
+
     program =  "SUM([2,2,2],[4,4,4],[3,3,3])"
     eval(program).should == 27
-    
+
     program =  "SUM([ [2,2,2], [4,4,4], [3,3,3] ])"
     eval(program).should == 27
   end
-  
+
   it "should be able to calculate MULT for an arbitrary number of argument expressions" do
     program =  "MULT()"
     eval(program).should == 0
@@ -126,7 +126,6 @@ describe "The language" do
     program = "MULT(x)"
     eval(program, { :x => [ 1, 2, 3 ] }).should == 6
   end
-  
 
   it "should provide COMPACT in order to remove NULL values from arrays" do
     program =  "COMPACT([1])"
@@ -183,19 +182,19 @@ describe "The language" do
     eval(program).should == 4
     program =  "AVG(fun(){4}(),fun(x){x}(4),fun(x,y){x+y}(2,2))"
     eval(program).should == 4
-    
+
     program =  "AVG([1,2,3],[4,4,4],[6,6,6])"
     eval(program).should == 4
     program =  "AVG([2,2],[4,4,4],[6,6])"
     eval(program).should == 4
   end
-  
+
   it "should be able to calculate AVG_SUM for an arbitrary number of argument expressions" do
     program =  "AVG_SUM([1,2,3],[4,4,4],[6,6,6])"
     eval(program).should == 12
     program =  "AVG_SUM([2,2],[4,4,4],[6,6])"
     eval(program).should == 12
-    
+
     env = {
       :ap => [138542.0, 136795.0, 134256.0], # 136531
       :aq => [124580.0, 21458.0, 34560.0],   #  60199.3333333333
@@ -205,10 +204,10 @@ describe "The language" do
       :au => [250.0, 250.0, 250.0]           #    250
                                              # ------------------
                                              # 206859
-                                             
+
     }
     eval("AVG_SUM(ENV['ap'..'au'])", env).should == 206859
-    
+
     env = {
       :ap => [138542.0, 136795.0, 134256.0], # 136531
       :aq => [124580.0, 21458.0, 34560.0],   #  60199.3333333333
@@ -218,10 +217,10 @@ describe "The language" do
       :au => [0, 0, 0]                       #      0
                                              # ------------------
                                              # 206609
-                                             
+
     }
     eval("AVG_SUM(ENV['ap'..'au'])", env).should == 206609
-    
+
   end
 
   it "should be able to calculate MIN for an arbitrary number of argument expressions" do
@@ -253,7 +252,7 @@ describe "The language" do
     program =  "MAX(fun(){4}(),fun(x){x}(4),fun(x,y){x+y}(2,2))"
     eval(program).should == 4
   end
-  
+
   it "should be able to map all hash ids that match a given value by calling MATCHING_IDS" do
     env = { :foo => { :a => "bar", :b => "bar", :c => "baz" } }
     eval("MATCHING_IDS('bar', foo)", env).should include(:a)
@@ -261,9 +260,9 @@ describe "The language" do
     eval("MATCHING_IDS('baz', foo)", env).should == [ :c ]
     eval("MATCHING_IDS('bam', foo)", env).should == []
   end
-  
+
   it "should define a VALUES_OF_TYPE function" do
-    env = { 
+    env = {
       :all_types => { :a => "bar", :b => "bar", :c => "baz" },
       :all_values => { :a => 100, :b => 200, :c => 300 }
     }
@@ -272,7 +271,7 @@ describe "The language" do
     eval("VALUES_OF_TYPE('baz', all_types, all_values)", env).should == [ 300 ]
     eval("VALUES_OF_TYPE('bam', all_types, all_values)", env).should == []
 
-    env = { 
+    env = {
       :all_types => { :a => "bar", :b => "bar", :c => "baz" },
       :all_values => { :a => [100,200,300], :b => [400,500,600], :c => [700,800,900] }
     }
@@ -281,17 +280,17 @@ describe "The language" do
     eval("VALUES_OF_TYPE('baz', all_types, all_values)", env).should == [ [700,800,900] ]
     eval("VALUES_OF_TYPE('bam', all_types, all_values)", env).should == []
 
-    env = { 
+    env = {
       :all_types => { :a => "bar", :b => "bar", :c => "baz" },
       :all_values => []
     }
     lambda { eval("VALUES_OF_TYPE('bar', all_types, all_values)", env) }.should raise_error(Trxl::InvalidArgumentException)
-    
-    env = { 
+
+    env = {
       :all_types => [],
       :all_values => { :a => [100,200,300], :b => [400,500,600], :c => [700,800,900] }
     }
     lambda { eval("VALUES_OF_TYPE('bar', all_types, all_values)", env) }.should raise_error(Trxl::InvalidArgumentException)
   end
-  
+
 end
