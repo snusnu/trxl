@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{trxl}
-  s.version = "0.1.7"
+  s.version = "0.1.8"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Martin Gamsjaeger (snusnu)", "Michael Aufreiter"]
-  s.date = %q{2011-04-26}
+  s.authors = [%q{Martin Gamsjaeger (snusnu)}, %q{Michael Aufreiter}]
+  s.date = %q{2011-07-14}
   s.description = %q{A specced little language written with ruby and treetop. It has lambdas, recursion, conditionals, arrays, hashes, ranges, strings, arithmetics and some other stuff. It even has a small code import facility.}
   s.email = %q{gamsnjaga [at] gmail [dot] com}
   s.extra_rdoc_files = [
@@ -45,29 +45,9 @@ Gem::Specification.new do |s|
     "trxl.gemspec"
   ]
   s.homepage = %q{http://github.com/snusnu/trxl}
-  s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.7.2}
+  s.require_paths = [%q{lib}]
+  s.rubygems_version = %q{1.8.5}
   s.summary = %q{A specced little language written with ruby and treetop.}
-  s.test_files = [
-    "spec/spec_helper.rb",
-    "spec/trxl/arithmetics_spec.rb",
-    "spec/trxl/arrays_spec.rb",
-    "spec/trxl/booleans_spec.rb",
-    "spec/trxl/builtins_spec.rb",
-    "spec/trxl/closures_spec.rb",
-    "spec/trxl/comments_spec.rb",
-    "spec/trxl/common_spec.rb",
-    "spec/trxl/conditionals_spec.rb",
-    "spec/trxl/constants_spec.rb",
-    "spec/trxl/environment_spec.rb",
-    "spec/trxl/hashes_spec.rb",
-    "spec/trxl/numbers_spec.rb",
-    "spec/trxl/ranges_spec.rb",
-    "spec/trxl/require_spec.rb",
-    "spec/trxl/stdlib_spec.rb",
-    "spec/trxl/strings_spec.rb",
-    "spec/trxl/variables_spec.rb"
-  ]
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
