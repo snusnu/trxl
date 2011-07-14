@@ -189,6 +189,17 @@ describe "The language" do
     eval(program).should == 4
   end
 
+  it "should provide COMPACT_AVG in order to compact an array before calculating its AVG value" do
+    program =  "COMPACT_AVG([1,2,3])"
+    eval(program).should == 2
+    program =  "COMPACT_AVG([1, NULL])"
+    eval(program).should == 1
+    program =  "COMPACT_AVG([NULL])"
+    eval(program).should == nil
+    program =  "COMPACT_AVG([NULL, NULL])"
+    eval(program).should == nil
+  end
+
   it "should be able to calculate AVG_SUM for an arbitrary number of argument expressions" do
     program =  "AVG_SUM([1,2,3],[4,4,4],[6,6,6])"
     eval(program).should == 12

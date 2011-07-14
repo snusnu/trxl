@@ -313,6 +313,35 @@ module Trxl
 
   end
 
+  module Builtin
+
+    def self.avg(values)
+      strict = true
+      nr_of_vals = 0
+      strict_flag = values.first
+      if strict_flag.is_a?(TrueClass) || strict_flag.is_a?(FalseClass)
+        values.shift
+        strict = strict_flag
+      end
+
+      # if all values are nil return nil
+      return nil if values.compact.size == 0
+
+      s = values.inject(0) do |sum, next_val|
+        sum + if next_val.is_a?(Array)
+          next_val.flatten.inject(0) do |next_sum, val|
+            nr_of_vals += 1 if val && (strict || (!strict && val != 0))
+            next_sum + (val || 0)
+          end
+        else
+          nr_of_vals += 1 if next_val && (strict || (!strict && next_val != 0))
+          next_val || 0
+        end
+      end
+      (s != 0 && nr_of_vals != 0) ? s.to_f / nr_of_vals : 0
+    end
+  end
+
   module StdLib
 
     FOREACH_IN = <<-PROGRAM

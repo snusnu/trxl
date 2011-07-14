@@ -4861,20 +4861,25 @@ module Trxl
                                     if r17
                                       r0 = r17
                                     else
-                                      r18 = _nt_is_empty_function
+                                      r18 = _nt_compact_avg_function
                                       if r18
                                         r0 = r18
                                       else
-                                        r19 = _nt_matching_ids_function
+                                        r19 = _nt_is_empty_function
                                         if r19
                                           r0 = r19
                                         else
-                                          r20 = _nt_values_of_type_function
+                                          r20 = _nt_matching_ids_function
                                           if r20
                                             r0 = r20
                                           else
-                                            @index = i0
-                                            r0 = nil
+                                            r21 = _nt_values_of_type_function
+                                            if r21
+                                              r0 = r21
+                                            else
+                                              @index = i0
+                                              r0 = nil
+                                            end
                                           end
                                         end
                                       end
@@ -4934,7 +4939,7 @@ module Trxl
       help << "    SUM, MULT, AVG, PRINT, PRINT_LINE\n"
       help << "    TO_INT, TO_FLOAT, TO_ARRAY, AVG_SUM\n"
       help << "    MATCHING_IDS, VALUES_OF_TYPE, COMPACT\n"
-      help << "    IS_EMPTY\n"
+      help << "    IS_EMPTY, COMPACT_AVG\n"
       help << "-----------------------------------------\n"
       help << "7)  Standard library functions:\n"
       help << "    foreach_in, inject, map, select\n"
@@ -7082,35 +7087,15 @@ module Trxl
 
   module AvgFunction2
     def eval(env = Environment.new)
-      strict = true
-      nr_of_vals = 0
-      values = expressions
-      strict_flag = values[0].eval(env)
-      if strict_flag.is_a?(TrueClass) || strict_flag.is_a?(FalseClass)
-        values.shift
-        strict = strict_flag
-      end
-
-      # if all values are nil return nil
-      values = values.map { |v| v.eval(env) }
-      return nil if values.compact.size == 0
-
-      s = values.inject(0) do |sum, next_val|
-        sum + if next_val.is_a?(Array)
-          next_val.flatten.inject(0) do |next_sum, val|
-            nr_of_vals += 1 if val && (strict || (!strict && val != 0))
-            next_sum + (val || 0)
-          end
-        else
-          nr_of_vals += 1 if next_val && (strict || (!strict && next_val != 0))
-          next_val || 0
-        end
-      end
-      (s != 0 && nr_of_vals != 0) ? s.to_f / nr_of_vals : 0
+      Trxl::Builtin.avg(values(env))
     end
 
     def expressions
       [ expression ] + more_expressions.elements.map { |e| e.expression }
+    end
+
+    def values(env)
+      expressions.map { |e| e.eval(env) }
     end
   end
 
@@ -7293,6 +7278,179 @@ module Trxl
     end
 
     node_cache[:avg_function][start_index] = r0
+
+    r0
+  end
+
+  module CompactAvgFunction0
+    def space1
+      elements[1]
+    end
+
+    def space2
+      elements[3]
+    end
+
+    def expression
+      elements[4]
+    end
+
+    def space3
+      elements[5]
+    end
+
+  end
+
+  module CompactAvgFunction1
+    def eval(env = Environment.new)
+      values = values(env)
+      values.any? ? Trxl::Builtin.avg(values) : nil
+    end
+
+    def values(env)
+      expression.eval(env).compact
+    end
+  end
+
+  module CompactAvgFunction2
+    def space1
+      elements[1]
+    end
+
+    def space2
+      elements[3]
+    end
+
+  end
+
+  module CompactAvgFunction3
+    def eval(env = Environment.new)
+      nil
+    end
+  end
+
+  def _nt_compact_avg_function
+    start_index = index
+    if node_cache[:compact_avg_function].has_key?(index)
+      cached = node_cache[:compact_avg_function][index]
+      if cached
+        cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
+        @index = cached.interval.end
+      end
+      return cached
+    end
+
+    i0 = index
+    i1, s1 = index, []
+    if has_terminal?('COMPACT_AVG', false, index)
+      r2 = instantiate_node(SyntaxNode,input, index...(index + 11))
+      @index += 11
+    else
+      terminal_parse_failure('COMPACT_AVG')
+      r2 = nil
+    end
+    s1 << r2
+    if r2
+      r3 = _nt_space
+      s1 << r3
+      if r3
+        if has_terminal?('(', false, index)
+          r4 = instantiate_node(SyntaxNode,input, index...(index + 1))
+          @index += 1
+        else
+          terminal_parse_failure('(')
+          r4 = nil
+        end
+        s1 << r4
+        if r4
+          r5 = _nt_space
+          s1 << r5
+          if r5
+            r6 = _nt_expression
+            s1 << r6
+            if r6
+              r7 = _nt_space
+              s1 << r7
+              if r7
+                if has_terminal?(')', false, index)
+                  r8 = instantiate_node(SyntaxNode,input, index...(index + 1))
+                  @index += 1
+                else
+                  terminal_parse_failure(')')
+                  r8 = nil
+                end
+                s1 << r8
+              end
+            end
+          end
+        end
+      end
+    end
+    if s1.last
+      r1 = instantiate_node(SyntaxNode,input, i1...index, s1)
+      r1.extend(CompactAvgFunction0)
+      r1.extend(CompactAvgFunction1)
+    else
+      @index = i1
+      r1 = nil
+    end
+    if r1
+      r0 = r1
+    else
+      i9, s9 = index, []
+      if has_terminal?('COMPACT_AVG', false, index)
+        r10 = instantiate_node(SyntaxNode,input, index...(index + 11))
+        @index += 11
+      else
+        terminal_parse_failure('COMPACT_AVG')
+        r10 = nil
+      end
+      s9 << r10
+      if r10
+        r11 = _nt_space
+        s9 << r11
+        if r11
+          if has_terminal?('(', false, index)
+            r12 = instantiate_node(SyntaxNode,input, index...(index + 1))
+            @index += 1
+          else
+            terminal_parse_failure('(')
+            r12 = nil
+          end
+          s9 << r12
+          if r12
+            r13 = _nt_space
+            s9 << r13
+            if r13
+              if has_terminal?(')', false, index)
+                r14 = instantiate_node(SyntaxNode,input, index...(index + 1))
+                @index += 1
+              else
+                terminal_parse_failure(')')
+                r14 = nil
+              end
+              s9 << r14
+            end
+          end
+        end
+      end
+      if s9.last
+        r9 = instantiate_node(SyntaxNode,input, i9...index, s9)
+        r9.extend(CompactAvgFunction2)
+        r9.extend(CompactAvgFunction3)
+      else
+        @index = i9
+        r9 = nil
+      end
+      if r9
+        r0 = r9
+      else
+        @index = i0
+        r0 = nil
+      end
+    end
+
+    node_cache[:compact_avg_function][start_index] = r0
 
     r0
   end

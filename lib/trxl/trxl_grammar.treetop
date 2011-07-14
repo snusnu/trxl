@@ -827,6 +827,8 @@ grammar Trxl
     /
     compact_function
     /
+    compact_avg_function
+    /
     is_empty_function
     /
     matching_ids_function
@@ -868,7 +870,7 @@ grammar Trxl
         help << "    SUM, MULT, AVG, PRINT, PRINT_LINE\n"
         help << "    TO_INT, TO_FLOAT, TO_ARRAY, AVG_SUM\n"
         help << "    MATCHING_IDS, VALUES_OF_TYPE, COMPACT\n"
-        help << "    IS_EMPTY\n"
+        help << "    IS_EMPTY, COMPACT_AVG\n"
         help << "-----------------------------------------\n"
         help << "7)  Standard library functions:\n"
         help << "    foreach_in, inject, map, select\n"
@@ -1211,41 +1213,40 @@ grammar Trxl
   rule avg_function
     'AVG' space '(' space expression more_expressions:( space ',' space expression)* space ')' {
       def eval(env = Environment.new)
-        strict = true
-        nr_of_vals = 0
-        values = expressions
-        strict_flag = values[0].eval(env)
-        if strict_flag.is_a?(TrueClass) || strict_flag.is_a?(FalseClass)
-          values.shift
-          strict = strict_flag
-        end
-
-        # if all values are nil return nil
-        values = values.map { |v| v.eval(env) }
-        return nil if values.compact.size == 0
-
-        s = values.inject(0) do |sum, next_val|
-          sum + if next_val.is_a?(Array)
-            next_val.flatten.inject(0) do |next_sum, val|
-              nr_of_vals += 1 if val && (strict || (!strict && val != 0))
-              next_sum + (val || 0)
-            end
-          else
-            nr_of_vals += 1 if next_val && (strict || (!strict && next_val != 0))
-            next_val || 0
-          end
-        end
-        (s != 0 && nr_of_vals != 0) ? s.to_f / nr_of_vals : 0
+        Trxl::Builtin.avg(values(env))
       end
 
       def expressions
         [ expression ] + more_expressions.elements.map { |e| e.expression }
+      end
+
+      def values(env)
+        expressions.map { |e| e.eval(env) }
       end
     }
     /
     'AVG' space '(' space ')' {
       def eval(env = Environment.new)
         0
+      end
+    }
+  end
+
+  rule compact_avg_function
+    'COMPACT_AVG' space '(' space expression space ')' {
+      def eval(env = Environment.new)
+        values = values(env)
+        values.any? ? Trxl::Builtin.avg(values) : nil
+      end
+
+      def values(env)
+        expression.eval(env).compact
+      end
+    }
+    /
+    'COMPACT_AVG' space '(' space ')' {
+      def eval(env = Environment.new)
+        nil
       end
     }
   end
