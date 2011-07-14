@@ -825,6 +825,10 @@ grammar Trxl
     /
     avg_function
     /
+    compact_function
+    /
+    is_empty_function
+    /
     matching_ids_function
     /
     values_of_type_function
@@ -863,7 +867,8 @@ grammar Trxl
         help << "    HELP,ENV,SIZE,SPLIT,ROUND,MIN,MAX\n"
         help << "    SUM, MULT, AVG, PRINT, PRINT_LINE\n"
         help << "    TO_INT, TO_FLOAT, TO_ARRAY, AVG_SUM\n"
-        help << "    MATCHING_IDS, VALUES_OF_TYPE\n"
+        help << "    MATCHING_IDS, VALUES_OF_TYPE, COMPACT\n"
+        help << "    IS_EMPTY\n"
         help << "-----------------------------------------\n"
         help << "7)  Standard library functions:\n"
         help << "    foreach_in, inject, map, select\n"
@@ -1169,6 +1174,36 @@ grammar Trxl
     'MULT' space '(' space ')' {
       def eval(env = Environment.new)
         0
+      end
+    }
+  end
+
+  rule compact_function
+    'COMPACT' space '(' space expression space ')' {
+      def eval(env = Environment.new)
+        arr = expression.eval(env)
+        arr.compact
+      end
+    }
+    /
+    'COMPACT' space '(' space ')' {
+      def eval(env = Environment.new)
+        []
+      end
+    }
+  end
+
+  rule is_empty_function
+    'IS_EMPTY' space '(' space expression space ')' {
+      def eval(env = Environment.new)
+        arr = expression.eval(env)
+        arr.empty?
+      end
+    }
+    /
+    'IS_EMPTY' space '(' space ')' {
+      def eval(env = Environment.new)
+        true
       end
     }
   end

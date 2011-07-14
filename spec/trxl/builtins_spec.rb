@@ -127,6 +127,27 @@ describe "The language" do
     eval(program, { :x => [ 1, 2, 3 ] }).should == 6
   end
   
+
+  it "should provide COMPACT in order to remove NULL values from arrays" do
+    program =  "COMPACT([1])"
+    eval(program).should == [1]
+    program =  "COMPACT([1, NULL])"
+    eval(program).should == [1]
+    program =  "COMPACT([NULL])"
+    eval(program).should == []
+    program =  "COMPACT([NULL, NULL])"
+    eval(program).should == []
+  end
+
+  it "should provide IS_EMPTY in order to test if an array contains elements" do
+    program =  "IS_EMPTY([])"
+    eval(program).should == true
+    program =  "IS_EMPTY([1])"
+    eval(program).should == false
+    program =  "IS_EMPTY([NULL])"
+    eval(program).should == false
+  end
+
   it "should be able to calculate AVG for an arbitrary number of argument expressions" do
     program =  "AVG()"
     eval(program).should == 0

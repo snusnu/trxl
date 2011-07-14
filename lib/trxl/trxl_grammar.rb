@@ -4857,16 +4857,26 @@ module Trxl
                                   if r16
                                     r0 = r16
                                   else
-                                    r17 = _nt_matching_ids_function
+                                    r17 = _nt_compact_function
                                     if r17
                                       r0 = r17
                                     else
-                                      r18 = _nt_values_of_type_function
+                                      r18 = _nt_is_empty_function
                                       if r18
                                         r0 = r18
                                       else
-                                        @index = i0
-                                        r0 = nil
+                                        r19 = _nt_matching_ids_function
+                                        if r19
+                                          r0 = r19
+                                        else
+                                          r20 = _nt_values_of_type_function
+                                          if r20
+                                            r0 = r20
+                                          else
+                                            @index = i0
+                                            r0 = nil
+                                          end
+                                        end
                                       end
                                     end
                                   end
@@ -4923,7 +4933,8 @@ module Trxl
       help << "    HELP,ENV,SIZE,SPLIT,ROUND,MIN,MAX\n"
       help << "    SUM, MULT, AVG, PRINT, PRINT_LINE\n"
       help << "    TO_INT, TO_FLOAT, TO_ARRAY, AVG_SUM\n"
-      help << "    MATCHING_IDS, VALUES_OF_TYPE\n"
+      help << "    MATCHING_IDS, VALUES_OF_TYPE, COMPACT\n"
+      help << "    IS_EMPTY\n"
       help << "-----------------------------------------\n"
       help << "7)  Standard library functions:\n"
       help << "    foreach_in, inject, map, select\n"
@@ -6690,6 +6701,344 @@ module Trxl
     end
 
     node_cache[:mult_function][start_index] = r0
+
+    r0
+  end
+
+  module CompactFunction0
+    def space1
+      elements[1]
+    end
+
+    def space2
+      elements[3]
+    end
+
+    def expression
+      elements[4]
+    end
+
+    def space3
+      elements[5]
+    end
+
+  end
+
+  module CompactFunction1
+    def eval(env = Environment.new)
+      arr = expression.eval(env)
+      arr.compact
+    end
+  end
+
+  module CompactFunction2
+    def space1
+      elements[1]
+    end
+
+    def space2
+      elements[3]
+    end
+
+  end
+
+  module CompactFunction3
+    def eval(env = Environment.new)
+      []
+    end
+  end
+
+  def _nt_compact_function
+    start_index = index
+    if node_cache[:compact_function].has_key?(index)
+      cached = node_cache[:compact_function][index]
+      if cached
+        cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
+        @index = cached.interval.end
+      end
+      return cached
+    end
+
+    i0 = index
+    i1, s1 = index, []
+    if has_terminal?('COMPACT', false, index)
+      r2 = instantiate_node(SyntaxNode,input, index...(index + 7))
+      @index += 7
+    else
+      terminal_parse_failure('COMPACT')
+      r2 = nil
+    end
+    s1 << r2
+    if r2
+      r3 = _nt_space
+      s1 << r3
+      if r3
+        if has_terminal?('(', false, index)
+          r4 = instantiate_node(SyntaxNode,input, index...(index + 1))
+          @index += 1
+        else
+          terminal_parse_failure('(')
+          r4 = nil
+        end
+        s1 << r4
+        if r4
+          r5 = _nt_space
+          s1 << r5
+          if r5
+            r6 = _nt_expression
+            s1 << r6
+            if r6
+              r7 = _nt_space
+              s1 << r7
+              if r7
+                if has_terminal?(')', false, index)
+                  r8 = instantiate_node(SyntaxNode,input, index...(index + 1))
+                  @index += 1
+                else
+                  terminal_parse_failure(')')
+                  r8 = nil
+                end
+                s1 << r8
+              end
+            end
+          end
+        end
+      end
+    end
+    if s1.last
+      r1 = instantiate_node(SyntaxNode,input, i1...index, s1)
+      r1.extend(CompactFunction0)
+      r1.extend(CompactFunction1)
+    else
+      @index = i1
+      r1 = nil
+    end
+    if r1
+      r0 = r1
+    else
+      i9, s9 = index, []
+      if has_terminal?('COMPACT', false, index)
+        r10 = instantiate_node(SyntaxNode,input, index...(index + 7))
+        @index += 7
+      else
+        terminal_parse_failure('COMPACT')
+        r10 = nil
+      end
+      s9 << r10
+      if r10
+        r11 = _nt_space
+        s9 << r11
+        if r11
+          if has_terminal?('(', false, index)
+            r12 = instantiate_node(SyntaxNode,input, index...(index + 1))
+            @index += 1
+          else
+            terminal_parse_failure('(')
+            r12 = nil
+          end
+          s9 << r12
+          if r12
+            r13 = _nt_space
+            s9 << r13
+            if r13
+              if has_terminal?(')', false, index)
+                r14 = instantiate_node(SyntaxNode,input, index...(index + 1))
+                @index += 1
+              else
+                terminal_parse_failure(')')
+                r14 = nil
+              end
+              s9 << r14
+            end
+          end
+        end
+      end
+      if s9.last
+        r9 = instantiate_node(SyntaxNode,input, i9...index, s9)
+        r9.extend(CompactFunction2)
+        r9.extend(CompactFunction3)
+      else
+        @index = i9
+        r9 = nil
+      end
+      if r9
+        r0 = r9
+      else
+        @index = i0
+        r0 = nil
+      end
+    end
+
+    node_cache[:compact_function][start_index] = r0
+
+    r0
+  end
+
+  module IsEmptyFunction0
+    def space1
+      elements[1]
+    end
+
+    def space2
+      elements[3]
+    end
+
+    def expression
+      elements[4]
+    end
+
+    def space3
+      elements[5]
+    end
+
+  end
+
+  module IsEmptyFunction1
+    def eval(env = Environment.new)
+      arr = expression.eval(env)
+      arr.empty?
+    end
+  end
+
+  module IsEmptyFunction2
+    def space1
+      elements[1]
+    end
+
+    def space2
+      elements[3]
+    end
+
+  end
+
+  module IsEmptyFunction3
+    def eval(env = Environment.new)
+      true
+    end
+  end
+
+  def _nt_is_empty_function
+    start_index = index
+    if node_cache[:is_empty_function].has_key?(index)
+      cached = node_cache[:is_empty_function][index]
+      if cached
+        cached = SyntaxNode.new(input, index...(index + 1)) if cached == true
+        @index = cached.interval.end
+      end
+      return cached
+    end
+
+    i0 = index
+    i1, s1 = index, []
+    if has_terminal?('IS_EMPTY', false, index)
+      r2 = instantiate_node(SyntaxNode,input, index...(index + 8))
+      @index += 8
+    else
+      terminal_parse_failure('IS_EMPTY')
+      r2 = nil
+    end
+    s1 << r2
+    if r2
+      r3 = _nt_space
+      s1 << r3
+      if r3
+        if has_terminal?('(', false, index)
+          r4 = instantiate_node(SyntaxNode,input, index...(index + 1))
+          @index += 1
+        else
+          terminal_parse_failure('(')
+          r4 = nil
+        end
+        s1 << r4
+        if r4
+          r5 = _nt_space
+          s1 << r5
+          if r5
+            r6 = _nt_expression
+            s1 << r6
+            if r6
+              r7 = _nt_space
+              s1 << r7
+              if r7
+                if has_terminal?(')', false, index)
+                  r8 = instantiate_node(SyntaxNode,input, index...(index + 1))
+                  @index += 1
+                else
+                  terminal_parse_failure(')')
+                  r8 = nil
+                end
+                s1 << r8
+              end
+            end
+          end
+        end
+      end
+    end
+    if s1.last
+      r1 = instantiate_node(SyntaxNode,input, i1...index, s1)
+      r1.extend(IsEmptyFunction0)
+      r1.extend(IsEmptyFunction1)
+    else
+      @index = i1
+      r1 = nil
+    end
+    if r1
+      r0 = r1
+    else
+      i9, s9 = index, []
+      if has_terminal?('IS_EMPTY', false, index)
+        r10 = instantiate_node(SyntaxNode,input, index...(index + 8))
+        @index += 8
+      else
+        terminal_parse_failure('IS_EMPTY')
+        r10 = nil
+      end
+      s9 << r10
+      if r10
+        r11 = _nt_space
+        s9 << r11
+        if r11
+          if has_terminal?('(', false, index)
+            r12 = instantiate_node(SyntaxNode,input, index...(index + 1))
+            @index += 1
+          else
+            terminal_parse_failure('(')
+            r12 = nil
+          end
+          s9 << r12
+          if r12
+            r13 = _nt_space
+            s9 << r13
+            if r13
+              if has_terminal?(')', false, index)
+                r14 = instantiate_node(SyntaxNode,input, index...(index + 1))
+                @index += 1
+              else
+                terminal_parse_failure(')')
+                r14 = nil
+              end
+              s9 << r14
+            end
+          end
+        end
+      end
+      if s9.last
+        r9 = instantiate_node(SyntaxNode,input, i9...index, s9)
+        r9.extend(IsEmptyFunction2)
+        r9.extend(IsEmptyFunction3)
+      else
+        @index = i9
+        r9 = nil
+      end
+      if r9
+        r0 = r9
+      else
+        @index = i0
+        r0 = nil
+      end
+    end
+
+    node_cache[:is_empty_function][start_index] = r0
 
     r0
   end
