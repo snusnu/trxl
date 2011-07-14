@@ -7001,7 +7001,11 @@ module Trxl
           nr_of_vals = 0
           res = next_val.inject(0) do |next_sum, val|
             if val.is_a?(Array)
-              next_sum + val.inject(0) { |s, v| s + (v || 0) } / val.compact.size
+              if (size = val.compact.size) > 0
+                next_sum + val.inject(0) { |s, v| s + (v || 0) } / size
+              else
+                next_sum
+              end
             else
               nr_of_vals += 1 if val && (strict || (!strict && val != 0))
               next_sum + (val || 0)
