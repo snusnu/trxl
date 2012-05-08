@@ -4,14 +4,14 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = %q{trxl}
+  s.name = "trxl"
   s.version = "0.1.11"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = [%q{Martin Gamsjaeger (snusnu)}, %q{Michael Aufreiter}]
-  s.date = %q{2011-07-14}
-  s.description = %q{A specced little language written with ruby and treetop. It has lambdas, recursion, conditionals, arrays, hashes, ranges, strings, arithmetics and some other stuff. It even has a small code import facility.}
-  s.email = %q{gamsnjaga [at] gmail [dot] com}
+  s.authors = ["Martin Gamsjaeger (snusnu)", "Michael Aufreiter"]
+  s.date = "2012-05-08"
+  s.description = "A specced little language written with ruby and treetop. It has lambdas, recursion, conditionals, arrays, hashes, ranges, strings, arithmetics and some other stuff. It even has a small code import facility."
+  s.email = "gamsnjaga [at] gmail [dot] com"
   s.extra_rdoc_files = [
     "README"
   ]
@@ -44,10 +44,10 @@ Gem::Specification.new do |s|
     "spec/trxl/variables_spec.rb",
     "trxl.gemspec"
   ]
-  s.homepage = %q{http://github.com/snusnu/trxl}
-  s.require_paths = [%q{lib}]
-  s.rubygems_version = %q{1.8.5}
-  s.summary = %q{A specced little language written with ruby and treetop.}
+  s.homepage = "http://github.com/snusnu/trxl"
+  s.require_paths = ["lib"]
+  s.rubygems_version = "1.8.17"
+  s.summary = "A specced little language written with ruby and treetop."
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
