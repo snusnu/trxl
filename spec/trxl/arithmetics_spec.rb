@@ -3,13 +3,13 @@ require 'spec_helper'
 Infinity = 1.0 / 0
 
 describe "When evaluating addition expressions, the language" do
-  
+
   include Trxl::SpecHelper
 
   before(:each) do
     @parser = Trxl::Calculator.new
   end
-  
+
   it "should allow integers as operands" do
     eval("0+0").should == 0 + 0
     eval("0+1").should == 0 + 1
@@ -18,7 +18,7 @@ describe "When evaluating addition expressions, the language" do
     eval("2+2").should == 2 + 2
     eval("2+-2").should == 2 + -2
   end
-  
+
   it "should allow floats as operands" do
     eval("0.0+0.0").should         == 0.0 + 0.0
     eval("0.1+1").should           == 0.1 + 1
@@ -26,6 +26,14 @@ describe "When evaluating addition expressions, the language" do
     eval("1.000+1.87").should      == 1.000 + 1.87
     eval("2.0+2.01").should        == 2.0 + 2.01
     eval("2.0+-2.01").should        == 2.0 + -2.01
+  end
+
+  it "should raise Trxl::InvalidArgumentException when the LHS is NULL" do
+    expect { eval("NULL + 1") }.to raise_error(Trxl::InvalidArgumentException)
+  end
+
+  it "should raise Trxl::InvalidArgumentException when the RHS is NULL" do
+    expect { eval("1 + NULL") }.to raise_error(Trxl::InvalidArgumentException)
   end
 
   it "should allow arbitrary spacing" do
@@ -36,23 +44,23 @@ describe "When evaluating addition expressions, the language" do
     eval("4  +  2      ").should == 4 + 2
     eval("   4 + 2     ").should == 4 + 2
   end
-  
+
   it "should allow chained expressions" do
     eval("1 + 1 + 1").should     == 1 + 1 + 1
     eval("1 + 1 + 1 + 1").should == 1 + 1 + 1 + 1
   end
-  
+
 end
 
 
 describe "When evaluating subtraction expressions, the language" do
-  
+
   include Trxl::SpecHelper
 
   before(:each) do
     @parser = Trxl::Calculator.new
   end
-  
+
   it "should allow integers as operands" do
     eval("0-0").should == 0 - 0
     eval("0-2").should == 0 - 2
@@ -61,7 +69,7 @@ describe "When evaluating subtraction expressions, the language" do
     eval("5--2").should == 5--2
   end
 
-  
+
   it "should allow floats as operands" do
     eval("0.0-0.0").should          == 0.0 - 0.0
     eval("0.1-2.34").should         == 0.1 - 2.34
@@ -69,7 +77,15 @@ describe "When evaluating subtraction expressions, the language" do
     eval("5.45678-2.456789").should == 5.45678 - 2.456789
     eval("5.45678--2.456789").should == 5.45678 - -2.456789
   end
-  
+
+  it "should raise Trxl::InvalidArgumentException when the LHS is NULL" do
+    expect { eval("NULL - 1") }.to raise_error(Trxl::InvalidArgumentException)
+  end
+
+  it "should raise Trxl::InvalidArgumentException when the RHS is NULL" do
+    expect { eval("1 - NULL") }.to raise_error(Trxl::InvalidArgumentException)
+  end
+
   it "should allow arbitrary spacing" do
     eval("4 - 2").should         == 4 - 2
     eval("4          -2").should == 4 - 2
@@ -78,12 +94,12 @@ describe "When evaluating subtraction expressions, the language" do
     eval("4  -  2      ").should == 4 - 2
     eval("   4 - 2     ").should == 4 - 2
   end
-  
+
   it "should perform left associative evaluation in chained expressions" do
     eval("16 - 4 - 2").should == (16 - 4 - 2)
     eval("16 - 4 - 2 - 2").should == (16 - 4 - 2 - 2)
   end
-  
+
   it "should allow to override operator precedence with parentheses" do
     eval("(16 - 4) - 2").should  == (16 - 4) - 2
     eval("16 - (4 - 2)").should  == 16 - (4 - 2)
@@ -91,17 +107,17 @@ describe "When evaluating subtraction expressions, the language" do
     eval("16 - (4 - 2) - 2").should  == 16 - (4 - 2) - 2
   end
 
-end 
+end
 
 
 describe "When evaluating multiplication expressions, the language" do
-  
+
   include Trxl::SpecHelper
 
   before(:each) do
     @parser = Trxl::Calculator.new
   end
-  
+
   it "should allow integers as operands" do
     eval("0*0").should == 0 * 0
     eval("0*1").should == 0 * 1
@@ -112,7 +128,7 @@ describe "When evaluating multiplication expressions, the language" do
     eval("3*-4").should == 3 * -4
   end
 
-  
+
   it "should allow floats as operands" do
     eval("0.0*0.0").should     == 0.0 * 0.0
     eval("0.1*1.0").should     == 0.1 * 1.0
@@ -123,6 +139,14 @@ describe "When evaluating multiplication expressions, the language" do
     eval("3.45*-4.45").should   == 3.45 * -4.45
   end
 
+  it "should raise Trxl::InvalidArgumentException when the LHS is NULL" do
+    expect { eval("NULL * 1") }.to raise_error(Trxl::InvalidArgumentException)
+  end
+
+  it "should raise Trxl::InvalidArgumentException when the RHS is NULL" do
+    expect { eval("1 * NULL") }.to raise_error(Trxl::InvalidArgumentException)
+  end
+
   it "should allow arbitrary spacing" do
     eval("4 * 2").should         == 4 * 2
     eval("4          *2").should == 4 * 2
@@ -131,23 +155,23 @@ describe "When evaluating multiplication expressions, the language" do
     eval("4  *  2      ").should == 4 * 2
     eval("   4 * 2     ").should == 4 * 2
   end
-  
+
   it "should allow chained expressions" do
     eval("1 * 2 * 3").should     == 1 * 2 * 3
     eval("1 * 2 * 3 * 4").should == 1 * 2 * 3 * 4
   end
-  
+
 end
 
 
 describe "When evaluating division expressions, the language" do
-  
+
   include Trxl::SpecHelper
 
   before(:each) do
     @parser = Trxl::Calculator.new
   end
-  
+
   it "should allow integers as operands" do
     eval("1/1").should == 1.0 / 1
     eval("0/1").should == 0.0 / 1
@@ -167,10 +191,18 @@ describe "When evaluating division expressions, the language" do
     eval("4.2345678/2").should == 4.2345678 / 2
     eval("3/2.123456").should  == 3 / 2.123456
     eval("3/-2.123456").should  == 3 / -2.123456
-    
+
     # TODO think about DivisonByZero vs. Infinity
   end
-  
+
+  it "should raise Trxl::InvalidArgumentException when the LHS is NULL" do
+    expect { eval("NULL / 1") }.to raise_error(Trxl::InvalidArgumentException)
+  end
+
+  it "should raise Trxl::InvalidArgumentException when the RHS is NULL" do
+    expect { eval("1 / NULL") }.to raise_error(Trxl::InvalidArgumentException)
+  end
+
   it "should allow arbitrary spacing" do
     eval("4 / 2").should         == 4 / 2
     eval("4          /2").should == 4 / 2
@@ -179,7 +211,7 @@ describe "When evaluating division expressions, the language" do
     eval("4  /  2      ").should == 4 / 2
     eval("   4 / 2     ").should == 4 / 2
   end
-  
+
   it "should perform left associative evaluation in chained expressions" do
     eval("16 / 4 / 2").should     == (16 / 4 / 2)
     eval("16 / 4 / 2 / 2").should == (16 / 4 / 2 / 2)
@@ -191,38 +223,46 @@ describe "When evaluating division expressions, the language" do
     eval("(16 / 4) / (2 / 2)").should  == (16 / 4) / (2 / 2)
     eval("16 / (4 / 2) / 2").should  == 16 / (4 / 2) / 2
   end
-  
+
 end
 
 
 describe "When evaluating modulo expressions, the language" do
-  
+
   include Trxl::SpecHelper
 
   before(:each) do
     @parser = Trxl::Calculator.new
   end
-  
+
   it "should allow integers as operands" do
     eval("1%1").should == 1 % 1
     eval("4%2").should == 4 % 2
     eval("8%3").should == 8 % 3
     eval("8%-3").should == 8 % -3
-    
+
      # test division by zero
     lambda { eval("1%0") }.should raise_error(Trxl::DivisionByZeroError)
   end
-  
+
 
   it "should allow floats as operands" do
     eval("1.0%1.0").should == 1.0 % 1.0
     eval("4.0%2.0").should == 4.0 % 2.0
     eval("8.0%3.2").should == 8.0 % 3.2
     eval("8.0%-3.2").should == 8.0 % -3.2
-    
+
      # TODO think about DivisonByZero vs. Infinity
   end
-  
+
+  it "should raise Trxl::InvalidArgumentException when the LHS is NULL" do
+    expect { eval("NULL % 1") }.to raise_error(Trxl::InvalidArgumentException)
+  end
+
+  it "should raise Trxl::InvalidArgumentException when the RHS is NULL" do
+    expect { eval("1 % NULL") }.to raise_error(Trxl::InvalidArgumentException)
+  end
+
   it "should allow arbitrary spacing" do
     eval("4 % 2").should         == 4 % 2
     eval("4          %2").should == 4 % 2
@@ -231,7 +271,7 @@ describe "When evaluating modulo expressions, the language" do
     eval("4  %  2      ").should == 4 % 2
     eval("   4 % 2     ").should == 4 % 2
   end
-  
+
   it "should perform left associative evaluation in chained expressions" do
     eval("15 % 5 % 3").should     == (15 % 5 % 3)
     eval("16 % 9 % 4 % 2").should == (16 % 9 % 4 % 2)
@@ -243,24 +283,24 @@ describe "When evaluating modulo expressions, the language" do
     eval("(16 % 4) % (5 % 3)").should  == (16 % 4) % (5 % 3)
     eval("16 % (5 % 3) % 2").should  == 16 % (5 % 3) % 2
   end
-  
+
 end
 
 describe "When evaluating exponential expressions, the language" do
-  
+
   include Trxl::SpecHelper
 
   before(:each) do
     @parser = Trxl::Calculator.new
   end
-  
+
   it "should allow integers as operands" do
     eval("1^1").should == 1 ** 1
     eval("4^2").should == 4 ** 2
     eval("8^3").should == 8 ** 3
     eval("8^-3").should == 8 ** -3
   end
-  
+
 
   it "should allow floats as operands" do
     eval("1.0^1.0").should == 1.0 ** 1.0
@@ -268,7 +308,15 @@ describe "When evaluating exponential expressions, the language" do
     eval("8.0^3.2").should == 8.0 ** 3.2
     eval("8.0^-3.2").should == 8.0 ** -3.2
   end
-  
+
+  it "should raise Trxl::InvalidArgumentException when the LHS is NULL" do
+    expect { eval("NULL ^ 1") }.to raise_error(Trxl::InvalidArgumentException)
+  end
+
+  it "should raise Trxl::InvalidArgumentException when the RHS is NULL" do
+    expect { eval("1 ^ NULL") }.to raise_error(Trxl::InvalidArgumentException)
+  end
+
   it "should allow arbitrary spacing" do
     eval("4 ^ 2").should         == 4 ** 2
     eval("4          ^2").should == 4 ** 2
@@ -277,17 +325,17 @@ describe "When evaluating exponential expressions, the language" do
     eval("4  ^  2      ").should == 4 ** 2
     eval("   4 ^ 2     ").should == 4 ** 2
   end
-  
+
   it "should perform left associative evaluation in chained expressions" do
     eval("2 ^ 2 ^ 2").should     == (2 ** 2 ** 2)
     eval("2 ^ 2 ^ 2 ^ 2").should == (2 ** 2 ** 2 ** 2)
   end
-  
+
 end
 
 
 describe "When evaluating arbitrary arithmetic expressions, the language" do
-  
+
   include Trxl::SpecHelper
 
   before(:each) do
@@ -323,12 +371,12 @@ describe "When evaluating arbitrary arithmetic expressions, the language" do
     eval("4 + 2 - 2").should  == 4 + 2 - 2
     eval("4 * 2 / 2").should  == 4 * 2 / 2
     eval("4 * 2 % 2").should  == 4 * 2 % 2
-    
+
     eval("4 - 2 + 2").should  == 4 - 2 + 2
     eval("4 / 2 * 2").should  == 4 / 2 * 2
     eval("4 % 2 * 2").should  == 4 % 2 * 2
     eval("4 ^ 2 * 2").should  == 4 ** 2 * 2
-    
+
   end
 
   it "should allow to override operator precedence using parentheses" do
@@ -349,7 +397,7 @@ describe "When evaluating arbitrary arithmetic expressions, the language" do
     eval("8 % (4 % 2 - 2)").should  == 8 % (4 % 2 - 2)
     eval("2 ^ (2 ^ 2) - 2").should  == 2 ** (2 ** 2) - 2
     eval("2 ^ (2 ^ 2 - 2)").should  == 2 ** (2 ** 2 - 2)
-    
+
     eval("2 * 4 * (2 - 2) * 3").should  == 2 * 4 * (2 - 2) * 3
     eval("2 * 4 * (2 - 2 * 3)").should  == 2 * 4 * (2 - 2 * 3)
     eval("8 / 4 / (2 - 4) / 2").should  == 8.0 / 4 / (2 - 4) / 2
@@ -358,7 +406,7 @@ describe "When evaluating arbitrary arithmetic expressions, the language" do
     eval("8 % 4 % (2 - 6 % 3)").should  == 8 % 4 % (2 - 6 % 3)
     eval("2 ^ 2 ^ (2 - 2) ^ 2").should  == 2 ** 2 ** (2 - 2) ** 2
     eval("2 ^ 2 ^ (2 - 2 ^ 2)").should  == 2 ** 2 ** (2 - 2 ** 2)
-    
+
     eval("4 / (2 + 2 * 4) * (2 - 2) * 3").should  == 4 / (2 + 2 * 4) * (2 - 2) * 3
     eval("2 * (2 + 8 / 4 / 2 - 4) / 2").should    == 2 * (2 + 8 / 4 / 2 - 4) / 2
     eval("(2 + 4 + 8 % 4) % 2 - (5 % 3)").should  == (2 + 4 + 8 % 4) % 2 - (5 % 3)
@@ -387,5 +435,5 @@ describe "When evaluating arbitrary arithmetic expressions, the language" do
     PROGRAM
     eval(program).should == 5
   end
-  
+
 end

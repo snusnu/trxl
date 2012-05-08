@@ -518,7 +518,7 @@ grammar Trxl
       def eval(env = Environment.new)
         # left associative evaluation
         multitives(env).inject(exponential.eval(env)) do |operand, next_op|
-          op = (next_op[0].text_value == '/' ? operand.to_f : operand)
+          op = (next_op[0].text_value == '/' ? (operand ? operand.to_f : nil) : operand)
           next_op[0].apply(op, next_op[1])
         end
       end
